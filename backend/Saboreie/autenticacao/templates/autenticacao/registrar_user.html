@@ -1,0 +1,41 @@
+{%block content%}
+    {%if request.user.is_authenticated%}
+    <h1>Vaza daq Fi</h1>
+    {%else%}
+        <h1>Registrar</h1>
+        <div class="registrar">
+            <form method="POST" action="">
+                {% csrf_token %}
+                
+                <label>{{form.username.label}}</label>
+                {{form.username}}
+                <br>
+
+                <label>{{form.email.label}}</label>
+                {{form.email}}
+                <br>
+
+                <label>{{form.password1.label}}</label>
+                {{form.password1}}
+                <br>
+
+                <label>{{form.password2.label}}</label>
+                {{form.password2}}
+                <br>
+
+                <input type="submit" value="Registrar"/>
+
+                <label>Já possui uma conta? Faça o login</label>
+                <a href="{% url 'paginaLogin' %}" title="Login">Login</a>
+            </form>
+
+            {% if messages %}
+            <ul class="messages">
+                {% for message in messages %}
+                <li>{{ message }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </div>
+    {%endif%}
+{%endblock content%}
