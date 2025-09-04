@@ -3,14 +3,14 @@ from django.db.models import Q
 from django.contrib import messages
 from .models import User
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.forms import UserCreationForm
+from .forms import CriacaoUser
 
 
 # Create your views here.
 
 def paginaLogin(request):
     if request.user.is_authenticated:
-        return redirect('home_page')
+        return redirect('home')
     
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -33,6 +33,21 @@ def paginaLogin(request):
 def logoutUser(request):
     logout(request)
     return redirect('home')
+
+def registrarUser(request):
+    if request.user.is_authenticated:
+        return redirect('home')
+    form = CriacaoUser()
+    if request.method =="POST":
+        form = CriacaoUser(request.POST)
+        if form.is_valid():
+            user = form.save()
+            messages.success(request, 'Conta criada')
+            login(request, user)
+            return redirect('home')
+        else:
+            return render(request, 'autenticacao/registrar_user.html', {'form':form})
+    return render(request, 'autenticacao/registrar_user.html', {'form':form})
 
 def home(request):
     return render(request, 'home.html')
