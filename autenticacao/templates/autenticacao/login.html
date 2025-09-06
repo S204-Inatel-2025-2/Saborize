@@ -1,0 +1,32 @@
+{%block title%}
+<title>Login</title>
+{%endblock title%}
+
+{%block content%}
+<h1>Login do Usuário</h1>
+<div class="login">
+    <form method="POST" action="">
+        {% csrf_token %}
+        
+        <label>Username:</label>
+        <input type="text" name="username" placeholder="Digite seu Username"/>
+
+        <label>Senha:</label>
+        <input type="password" name="senha" placeholder="Digite sua senha"/>
+
+        <input type="submit" value="Login"/>
+
+        <label>Não tem uma conta? Registre-se</label>
+        <a href="{% url 'registrarUser' %}" title="Registrar">Registrar</a>
+    </form>
+
+    {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+        <li>{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+</div>
+
+{%endblock content%}
