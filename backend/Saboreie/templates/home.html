@@ -4,7 +4,6 @@
 
 {% block content %}
 
-<<<<<<< HEAD
     <!-- Configuração do Layout da Navbar -->
     <nav class="navbar navbar-expand-lg navbar-custom">
         <div class="container">
@@ -29,31 +28,6 @@
                     {% endif %}
                 </ul>
             </div>
-=======
-<!-- Configuração do Layout da Navbar -->
-<nav class="navbar navbar-expand-lg navbar-custom">
-    <div class="container">
-        <a class="navbar-brand" href="#">SABORIZE</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
-            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto">
-                {% if request.user.is_authenticated %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'logout' %}">Logout</a>
-                    </li>
-                {% else %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'paginaLogin' %}">Login</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'registrarUser' %}">Registrar</a>
-                    </li>
-                {% endif %}
-            </ul>
->>>>>>> 811094c0ee81b25f111de0c070f7994a341358d6
         </div>
     </div>
 </nav>
