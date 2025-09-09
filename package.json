@@ -1,0 +1,24 @@
+{
+  "name": "saborize",
+  "version": "1.0.0",
+  "description": "Produto de Software envolvendo tecnologia e culinária",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/S204-Inatel-2025-2/Saborize.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/S204-Inatel-2025-2/Saborize/issues"
+  },
+  "homepage": "https://github.com/S204-Inatel-2025-2/Saborize#readme",
+  "devDependencies": {
+    "cypress": "^15.1.0"
+  }
+}
