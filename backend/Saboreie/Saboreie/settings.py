@@ -39,7 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     
     'autenticacao.apps.AutenticacaoConfig',
-    'bootstrap5',
+    'django_bootstrap5',
+    'receitas.apps.ReceitasConfig',
 ]
 
 AUTH_USER_MODEL = 'autenticacao.User'
