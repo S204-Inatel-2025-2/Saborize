@@ -1,13 +1,75 @@
+{% extends 'base.html' %}
+
+{% block title %}Criar Receita{% endblock title %}
+
 {% block content %}
 
-{% if request.user.is_authenticated %}
-<h1>Criar Receita</h1>
-<form method="post" enctype="multipart/form-data"> 
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Salvar Receita</button>
-    </form>
-{% endif %}
+<!-- Configuração do Layout da Navbar -->
+<nav class="navbar navbar-expand-lg navbar-custom">
+    <div class="container">
+        <a class="navbar-brand" href="#">SABORIZE</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                {% if request.user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+                    </li>
+                {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'paginaLogin' %}">Login</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'registrarUser' %}">Registrar</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</nav>
 
+<!-- Configuração do Layout do Conteúdo principal da página -->
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card card-custom p-4">
+                {% if request.user.is_authenticated %}
+                    <h1 class="mb-4 text-center">Criar Receita</h1>
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <!-- Renderizando os campos manualmente para aplicar Bootstrap -->
+                        {% for field in form %}
+                            <div class="mb-3">
+                                <label class="form-label">{{ field.label }}</label>
+                                {{ field }}
+                                {% if field.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {{ field.errors|join:", " }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                        
+                        <div class="d-flex justify-content-center">
+                            <button type="submit" class="btn btn-custom btn-lg">Salvar Receita</button>
+                        </div>
+                    </form>
+                {% else %}
+                    <p class="text-center">Você precisa estar logado para criar receitas.</p>
+                    <div class="text-center">
+                        <a href="{% url 'paginaLogin' %}" class="btn btn-custom">Fazer Login</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Import do JS do Bootstrap -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
 {% endblock content %}
