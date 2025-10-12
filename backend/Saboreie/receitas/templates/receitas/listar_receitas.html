@@ -46,6 +46,10 @@
                                 <p class="card-text"><strong>Ingredientes:</strong> {{ receita.ingredientes }}</p>
                                 <p class="card-text"><strong>Passos:</strong> {{ receita.passos }}</p>
                                 <p class="card-text"><small class="text-muted">Criada em: {{ receita.criada_em }}</small></p>
+                                <div class="mt-2">
+                                    <a href="{% url 'ver_receita' receita.id %}" class="btn btn-primary btn-sm">Ver Receita Completa</a>
+                                    <a href="{% url 'fazer_comentario' receita.id %}" class="btn btn-secondary btn-sm">Comentar</a>
+                                </div>
                             </div>
                         </div>
                     {% endfor %}

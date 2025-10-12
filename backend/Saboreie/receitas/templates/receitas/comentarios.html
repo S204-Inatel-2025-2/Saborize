@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Comentar - {{ receita.titulo }}</title>
+</head>
+<body>
+    <h1>Comentar na receita: {{ receita.titulo }}</h1>
+    
+    <div style="background-color: #f5f5f5; padding: 15px; margin: 10px 0; border-radius: 5px;">
+        <h3>{{ receita.titulo }}</h3>
+        <p><strong>Por:</strong> {{ receita.user.username }}</p>
+        <p><strong>Descrição:</strong> {{ receita.descricao|truncatewords:20 }}</p>
+    </div>
+    
+    {% if user.is_authenticated %}
+        <h2>Escrever comentário:</h2>
+        <form id="comentario-form">
+            <textarea id="texto-comentario" placeholder="Escreva seu comentário sobre esta receita..." rows="6" cols="60" maxlength="500" required></textarea><br>
+            <small>Máximo 500 caracteres. Restam: <span id="caracteres-restantes">500</span></small><br><br>
+            <button type="submit">Enviar Comentário</button>
+            <button type="button" onclick="history.back()">Cancelar</button>
+        </form>
+        
+        <div id="mensagem" style="margin-top: 10px;"></div>
+    {% else %}
+        <p>Você precisa estar logado para comentar.</p>
+        <p><a href="/autenticacao/login/">Fazer Login</a></p>
+    {% endif %}
+    
+    <hr>
+    <h2>Comentários existentes ({{ total_comentarios }}):</h2>
+    
+    <div>
+        {% for comentario in comentarios %}
+            <div style="border: 1px solid #ddd; padding: 10px; margin: 10px 0; background-color: #fafafa;" data-comentario-id="{{ comentario.id }}">
+                <strong>{{ comentario.usuario.username }}</strong> - {{ comentario.criado_em|date:"d/m/Y H:i" }}
+                {% if comentario.atualizado_em != comentario.criado_em %}
+                    <em>(editado)</em>
+                {% endif %}
+                {% if user == comentario.usuario or user == receita.user %}
+                    <button onclick="editarComentario('{{ comentario.id }}', '{{ comentario.texto|escapejs }}')" style="float: right; margin-left: 5px;">Editar</button>
+                    <button onclick="deletarComentario('{{ comentario.id }}')" style="float: right;">Deletar</button>
+                {% endif %}
+                <div style="margin-top: 8px; clear: both;" class="comentario-texto">{{ comentario.texto }}</div>
+            </div>
+        {% empty %}
+            <p>Nenhum comentário ainda. Seja o primeiro!</p>
+        {% endfor %}
+    </div>
+    
+    <hr>
+    <p><a href="{% url 'ver_receita' receita.id %}">Voltar para a receita</a></p>
+
+    <script>
+        // Contador de caracteres
+        const textarea = document.getElementById('texto-comentario');
+        const contador = document.getElementById('caracteres-restantes');
+        
+        if (textarea && contador) {
+            textarea.addEventListener('input', function() {
+                const restantes = 500 - this.value.length;
+                contador.textContent = restantes;
+                contador.style.color = restantes < 50 ? 'red' : 'black';
+            });
+        }
+
+        // Obter CSRF token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        const csrftoken = getCookie('csrftoken');
+
+        // Criar comentário
+        const form = document.getElementById('comentario-form');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const texto = document.getElementById('texto-comentario').value.trim();
+                if (!texto) {
+                    mostrarMensagem('Por favor, escreva um comentário.', 'error');
+                    return;
+                }
+
+                fetch('/receitas/api/comentario/criar/{{ receita.id }}/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrftoken
+                    },
+                    body: JSON.stringify({texto: texto})
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        mostrarMensagem('Comentário enviado com sucesso!', 'success');
+                        setTimeout(() => {
+                            window.location.href = "{% url 'ver_receita' receita.id %}";
+                        }, 1500);
+                    } else {
+                        mostrarMensagem('Erro: ' + data.error, 'error');
+                    }
+                })
+                .catch(error => {
+                    mostrarMensagem('Erro ao enviar comentário', 'error');
+                });
+            });
+        }
+
+        // Mostrar mensagem
+        function mostrarMensagem(texto, tipo) {
+            const div = document.getElementById('mensagem');
+            div.innerHTML = `<p style="color: ${tipo === 'success' ? 'green' : 'red'}; font-weight: bold;">${texto}</p>`;
+        }
+
+        // Deletar comentário
+        function deletarComentario(comentarioId) {
+            if (confirm('Tem certeza que deseja deletar este comentário?')) {
+                fetch('/receitas/api/comentario/deletar/' + comentarioId + '/', {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRFToken': csrftoken
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Erro: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    alert('Erro ao deletar comentário');
+                });
+            }
+        }
+
+        // Editar comentário
+        function editarComentario(comentarioId, textoAtual) {
+            const novoTexto = prompt('Editar comentário:', textoAtual);
+            if (novoTexto !== null && novoTexto.trim() && novoTexto.trim() !== textoAtual) {
+                fetch('/receitas/api/comentario/editar/' + comentarioId + '/', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrftoken
+                    },
+                    body: JSON.stringify({texto: novoTexto.trim()})
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Erro: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    alert('Erro ao editar comentário');
+                });
+            }
+        }
+    </script>
+</body>
+</html>

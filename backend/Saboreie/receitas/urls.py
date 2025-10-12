@@ -2,6 +2,17 @@ from django.urls import path
 from . import views
  
 urlpatterns = [
-   path ('listar_receitas/', views.listar_receitas, name='listar_receitas'), # URL para listar as receitas do usuário logado
-   path('criar_receita/', views.criar_receita, name='criar_receita'), # URL para criar uma nova receita
+    # URLs principais das receitas
+    path('minhas/', views.listar_receitas, name='listar_receitas'),
+    path('criar/', views.criar_receita, name='criar_receita'),
+    
+    # URLs para visualizar receita e comentários
+    path('ver/<int:receita_id>/', views.ver_receita, name='ver_receita'),
+    path('comentar/<int:receita_id>/', views.fazer_comentario, name='fazer_comentario'),
+    
+    # APIs para comentários (URLs mais organizadas)
+    path('api/comentarios/<int:receita_id>/', views.listar_comentarios, name='listar_comentarios'),
+    path('api/comentario/criar/<int:receita_id>/', views.criar_comentario, name='api_criar_comentario'),
+    path('api/comentario/editar/<int:comentario_id>/', views.editar_comentario, name='api_editar_comentario'),
+    path('api/comentario/deletar/<int:comentario_id>/', views.deletar_comentario, name='api_deletar_comentario'),
 ]
