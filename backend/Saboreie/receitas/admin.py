@@ -1,5 +1,36 @@
 from django.contrib import admin
-from .models import Receita
+from .models import Receita, Comentario
 
-# Register your models here.
-admin.site.register(Receita)
+
+@admin.register(Receita)
+class ReceitaAdmin(admin.ModelAdmin):
+    list_display = ['titulo', 'user', 'publica', 'criada_em', 'total_comentarios']
+    list_filter = ['publica', 'criada_em', 'user']
+    search_fields = ['titulo', 'descricao', 'ingredientes']
+    readonly_fields = ['criada_em', 'atualizada_em']
+    list_editable = ['publica']
+    
+    fieldsets = (
+        ('Informações Básicas', {
+            'fields': ('user', 'titulo', 'publica')
+        }),
+        ('Conteúdo', {
+            'fields': ('descricao', 'ingredientes', 'passos')
+        }),
+        ('Datas', {
+            'fields': ('criada_em', 'atualizada_em'),
+            'classes': ('collapse',)
+        }),
+    )
+
+
+@admin.register(Comentario)
+class ComentarioAdmin(admin.ModelAdmin):
+    list_display = ['receita', 'usuario', 'texto_resumo', 'criado_em']
+    list_filter = ['criado_em', 'receita__user']
+    search_fields = ['texto', 'usuario__username', 'receita__titulo']
+    readonly_fields = ['criado_em', 'atualizado_em']
+    
+    def texto_resumo(self, obj):
+        return obj.texto[:50] + '...' if len(obj.texto) > 50 else obj.texto
+    texto_resumo.short_description = 'Texto'
