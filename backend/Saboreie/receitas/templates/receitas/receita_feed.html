@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ receita.titulo }} - Saborize</title>
+</head>
+<body>
+    <!-- Navegação -->
+    <div>
+        <a href="{% url 'feed_receitas' %}">← Voltar ao Feed</a>
+        {% if user.is_authenticated %}
+            | <span>Logado como <strong>{{ user.username }}</strong></span>
+            | <a href="{% url 'listar_receitas' %}">Minhas Receitas</a>
+            | <a href="{% url 'logout' %}">Logout</a>
+        {% else %}
+            | <a href="{% url 'paginaLogin' %}">Fazer Login</a>
+            | <a href="{% url 'registrarUser' %}">Registrar-se</a>
+        {% endif %}
+    </div>
+
+    <!-- Conteúdo da receita -->
+    <div>
+        <h1>{{ receita.titulo }}</h1>
+        
+        <div>
+            <p><strong>Autor:</strong> {{ receita.user.username }}</p>
+            <p><strong>Publicada em:</strong> {{ receita.criada_em|date:"d/m/Y H:i" }}</p>
+            {% if receita.atualizada_em != receita.criada_em %}
+                <p><strong>Última atualização:</strong> {{ receita.atualizada_em|date:"d/m/Y H:i" }}</p>
+            {% endif %}
+        </div>
+        
+        <h2>Descrição:</h2>
+        <p>{{ receita.descricao }}</p>
+        
+        <h2>Ingredientes:</h2>
+        <pre>{{ receita.ingredientes }}</pre>
+        
+        <h2>Modo de preparo:</h2>
+        <pre>{{ receita.passos }}</pre>
+        
+        <hr>
+        
+        <!-- Seção de comentários -->
+        <h2>Comentários ({{ total_comentarios }})</h2>
+        
+        <!-- Botão para comentar -->
+        <div>
+            {% if user.is_authenticated %}
+                <a href="{% url 'fazer_comentario' receita.id %}">
+                   Comentar nesta receita
+                </a>
+            {% else %}
+                <div>
+                    <p><strong>Quer comentar?</strong> 
+                    <a href="{% url 'paginaLogin' %}?next={{ request.get_full_path }}">Faça login</a> ou 
+                    <a href="{% url 'registrarUser' %}?next={{ request.get_full_path }}">registre-se</a> para participar da conversa!</p>
+                </div>
+            {% endif %}
+        </div>
+        
+        <hr>
+        
+        <!-- Lista de comentários -->
+        <div>
+            {% for comentario in comentarios %}
+                <div>
+                    <div>
+                        <strong>{{ comentario.usuario.username }}</strong>
+                        <span>
+                            - {{ comentario.criado_em|date:"d/m/Y H:i" }}
+                            {% if comentario.atualizado_em != comentario.criado_em %}
+                                <em>(editado em {{ comentario.atualizado_em|date:"d/m/Y H:i" }})</em>
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div>{{ comentario.texto }}</div>
+                    <hr>
+                </div>
+            {% empty %}
+                <div>
+                    <p>Nenhum comentário ainda.</p>
+                    {% if user.is_authenticated %}
+                        <p>Seja o primeiro a comentar sobre esta receita!</p>
+                    {% else %}
+                        <p>Faça login para ser o primeiro a comentar!</p>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Botão de voltar -->
+        <hr>
+        <div>
+            <a href="{% url 'feed_receitas' %}">← Voltar ao Feed de Receitas</a>
+        </div>
+    </div>
+</body>
+</html>

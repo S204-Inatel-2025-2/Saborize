@@ -38,17 +38,22 @@
         <div class="col-md-6">
             <div class="card card-custom p-4 text-center">
                 <h1 class="mb-4">Bem-vindo ao Saborize!</h1>
-                <p class="lead mb-4">Acesse sua conta ou registre-se para começar a cozinhar.</p>
+                <p class="lead mb-4">Descubra e compartilhe receitas incríveis com nossa comunidade.</p>
+
+                <!-- Link para o feed (sempre visível) -->
+                <div class="mb-4">
+                    <a href="{% url 'feed_receitas' %}" class="btn btn-custom btn-lg"> Ver Feed de Receitas</a>
+                </div>
 
                 {% if not request.user.is_authenticated %}
                     <div class="d-flex justify-content-center gap-3">
                         <a href="{% url 'paginaLogin' %}" class="btn btn-custom btn-lg">Login</a>
                         <a href="{% url 'registrarUser' %}" class="btn btn-custom btn-lg">Registrar</a>
                     </div>
-                {% else %}
+                                {% else %}
                     <div class="d-flex flex-column gap-3">
                         <a href="{% url 'criar_receita' %}" class="btn btn-custom btn-lg">Criar Receita</a>
-                        <a href="{% url 'listar_receitas' %}" class="btn btn-custom btn-lg">Listar Receitas</a>
+                        <a href="{% url 'listar_receitas' %}" class="btn btn-custom btn-lg">Minhas Receitas</a>
                         <a href="{% url 'logout' %}" class="btn btn-custom btn-lg">Logout</a>
                     </div>
                 {% endif %}

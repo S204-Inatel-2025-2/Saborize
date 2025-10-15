@@ -44,7 +44,11 @@ def ver_receita(request, receita_id):
     return render(request, 'receitas/receita_simples.html', context)
 
 
+@login_required
 def fazer_comentario(request, receita_id):
+    """
+    View para a página de fazer comentário em uma receita (requer login)
+    """
     receita = get_object_or_404(Receita, id=receita_id)
     comentarios = receita.comentarios.all()
     
@@ -229,6 +233,155 @@ def listar_comentarios(request, receita_id):
             'success': True,
             'comentarios': comentarios_data,
             'total': len(comentarios_data)
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': 'Erro interno do servidor'
+        }, status=500)
+
+
+# ================================
+# SISTEMA DE FEED PÚBLICO
+# ================================
+
+def feed_receitas(request):
+    """
+    Feed público de receitas - acessível para todos (logados e não logados)
+    """
+    from django.core.paginator import Paginator
+    from django.db.models import Q
+    
+    # Buscar receitas públicas
+    receitas = Receita.objects.filter(publica=True).select_related('user').prefetch_related('comentarios')
+    
+    # Filtros de busca
+    busca = request.GET.get('busca', '').strip()
+    ordenacao = request.GET.get('ordem', 'recentes')  # recentes, populares
+    
+    if busca:
+        receitas = receitas.filter(
+            Q(titulo__icontains=busca) | 
+            Q(descricao__icontains=busca) |
+            Q(ingredientes__icontains=busca)
+        )
+    
+    # Aplicar ordenação
+    if ordenacao == 'populares':
+        # Ordenar por quantidade de comentários
+        receitas = receitas.order_by('-comentarios__criado_em').distinct()
+    else:  # recentes (padrão)
+        receitas = receitas.order_by('-criada_em')
+    
+    # Paginação
+    paginator = Paginator(receitas, 10)  # 10 receitas por página
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'receitas': page_obj,
+        'busca': busca,
+        'ordenacao': ordenacao,
+        'total_receitas': paginator.count,
+        'opcoes_ordenacao': [
+            ('recentes', 'Mais Recentes'),
+            ('populares', 'Mais Populares'),
+        ]
+    }
+    
+    return render(request, 'receitas/feed.html', context)
+
+
+def ver_receita_feed(request, receita_id):
+    """
+    View para ver receita individual do feed (acessível para todos)
+    """
+    receita = get_object_or_404(Receita, id=receita_id, publica=True)
+    comentarios = receita.comentarios.all()
+    
+    context = {
+        'receita': receita,
+        'comentarios': comentarios,
+        'total_comentarios': comentarios.count(),
+        'from_feed': True  # Flag para indicar que veio do feed
+    }
+    
+    return render(request, 'receitas/receita_feed.html', context)
+
+
+@require_http_methods(["GET"])
+def api_feed_receitas(request):
+    """
+    API REST para obter feed de receitas (acessível para todos)
+    """
+    from django.core.paginator import Paginator
+    from django.db.models import Q
+    
+    try:
+        # Parâmetros da API
+        page = int(request.GET.get('page', 1))
+        limit = min(int(request.GET.get('limit', 10)), 50)  # Máximo 50 por página
+        busca = request.GET.get('busca', '').strip()
+        ordenacao = request.GET.get('ordem', 'recentes')
+        
+        # Buscar receitas públicas
+        receitas = Receita.objects.filter(publica=True).select_related('user')
+        
+        # Filtro de busca
+        if busca:
+            receitas = receitas.filter(
+                Q(titulo__icontains=busca) | 
+                Q(descricao__icontains=busca) |
+                Q(ingredientes__icontains=busca)
+            )
+        
+        # Ordenação
+        if ordenacao == 'populares':
+            receitas = receitas.order_by('-comentarios__criado_em').distinct()
+        else:  # recentes
+            receitas = receitas.order_by('-criada_em')
+        
+        # Paginação
+        paginator = Paginator(receitas, limit)
+        page_obj = paginator.get_page(page)
+        
+        # Serializar dados
+        receitas_data = []
+        for receita in page_obj:
+            receitas_data.append({
+                'id': receita.id,
+                'titulo': receita.titulo,
+                'descricao': receita.descricao[:200] + '...' if len(receita.descricao) > 200 else receita.descricao,
+                'criada_em': receita.criada_em.isoformat(),
+                'autor': {
+                    'id': receita.user.id,
+                    'username': receita.user.username
+                },
+                'total_comentarios': receita.total_comentarios,
+                'urls': {
+                    'detalhes': f'/receitas/feed/ver/{receita.id}/',
+                    'api_comentarios': f'/receitas/api/comentarios/{receita.id}/',
+                }
+            })
+        
+        return JsonResponse({
+            'success': True,
+            'receitas': receitas_data,
+            'paginacao': {
+                'page_atual': page_obj.number,
+                'total_paginas': paginator.num_pages,
+                'total_receitas': paginator.count,
+                'tem_anterior': page_obj.has_previous(),
+                'tem_proximo': page_obj.has_next(),
+                'proxima_pagina': page_obj.next_page_number() if page_obj.has_next() else None,
+                'pagina_anterior': page_obj.previous_page_number() if page_obj.has_previous() else None
+            },
+            'filtros': {
+                'busca': busca,
+                'ordenacao': ordenacao,
+                'user_authenticated': request.user.is_authenticated
+            }
         })
         
     except Exception as e:
