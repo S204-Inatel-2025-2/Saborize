@@ -1,10 +1,10 @@
 from django.contrib import admin
-from .models import Receita, Comentario
+from .models import Receita, Comentario, Avaliacao
 
 
 @admin.register(Receita)
 class ReceitaAdmin(admin.ModelAdmin):
-    list_display = ['titulo', 'user', 'publica', 'criada_em', 'total_comentarios']
+    list_display = ['titulo', 'user', 'publica', 'criada_em', 'total_comentarios', 'total_avaliacoes', 'media_avaliacoes']
     list_filter = ['publica', 'criada_em', 'user']
     search_fields = ['titulo', 'descricao', 'ingredientes']
     readonly_fields = ['criada_em', 'atualizada_em']
@@ -34,3 +34,21 @@ class ComentarioAdmin(admin.ModelAdmin):
     def texto_resumo(self, obj):
         return obj.texto[:50] + '...' if len(obj.texto) > 50 else obj.texto
     texto_resumo.short_description = 'Texto'
+
+
+@admin.register(Avaliacao)
+class AvaliacaoAdmin(admin.ModelAdmin):
+    list_display = ['receita', 'usuario', 'nota', 'criada_em']
+    list_filter = ['nota', 'criada_em', 'receita__user']
+    search_fields = ['usuario__username', 'receita__titulo']
+    readonly_fields = ['criada_em', 'atualizada_em']
+    
+    fieldsets = (
+        ('Avaliação', {
+            'fields': ('receita', 'usuario', 'nota')
+        }),
+        ('Datas', {
+            'fields': ('criada_em', 'atualizada_em'),
+            'classes': ('collapse',)
+        }),
+    )

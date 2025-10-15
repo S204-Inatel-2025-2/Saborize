@@ -2,6 +2,26 @@
 <html>
 <head>
     <title>{{ receita.titulo }} - Saborize</title>
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <style>
+        .star {
+            cursor: pointer;
+            font-size: 24px;
+            color: #ddd;
+            margin-right: 5px;
+            transition: color 0.2s;
+        }
+        .star:hover {
+            color: #ffc107;
+        }
+        .star.selected {
+            color: #ffc107;
+        }
+        #avaliacao-message {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
     <!-- Navegação -->
@@ -37,6 +57,44 @@
         
         <h2>Modo de preparo:</h2>
         <pre>{{ receita.passos }}</pre>
+        
+        <hr>
+        
+        <!-- Seção de avaliações -->
+        <h2>Avaliações</h2>
+        <div>
+            {% if receita.total_avaliacoes > 0 %}
+                <p><strong>★ {{ receita.media_avaliacoes }}/5</strong> ({{ receita.total_avaliacoes }} avaliação{{ receita.total_avaliacoes|pluralize:"ões" }})</p>
+            {% else %}
+                <p>Nenhuma avaliação ainda.</p>
+            {% endif %}
+            
+            {% if user.is_authenticated and user != receita.user %}
+                <div id="avaliacao-form">
+                    <p><strong>Avalie esta receita:</strong></p>
+                    <div id="stars-container">
+                        <span class="star" data-rating="1" onclick="avaliarReceita(1)">★</span>
+                        <span class="star" data-rating="2" onclick="avaliarReceita(2)">★</span>
+                        <span class="star" data-rating="3" onclick="avaliarReceita(3)">★</span>
+                        <span class="star" data-rating="4" onclick="avaliarReceita(4)">★</span>
+                        <span class="star" data-rating="5" onclick="avaliarReceita(5)">★</span>
+                    </div>
+                    <!-- Botões alternativos para teste -->
+                    <div style="margin-top: 10px;">
+                        <button onclick="avaliarReceita(1)" style="margin: 2px;">1 Estrela</button>
+                        <button onclick="avaliarReceita(2)" style="margin: 2px;">2 Estrelas</button>
+                        <button onclick="avaliarReceita(3)" style="margin: 2px;">3 Estrelas</button>
+                        <button onclick="avaliarReceita(4)" style="margin: 2px;">4 Estrelas</button>
+                        <button onclick="avaliarReceita(5)" style="margin: 2px;">5 Estrelas</button>
+                    </div>
+                    <div id="avaliacao-message"></div>
+                </div>
+            {% elif user == receita.user %}
+                <p><em>Você não pode avaliar sua própria receita.</em></p>
+            {% else %}
+                <p><a href="{% url 'paginaLogin' %}?next={{ request.get_full_path }}">Faça login</a> para avaliar esta receita.</p>
+            {% endif %}
+        </div>
         
         <hr>
         
@@ -94,5 +152,94 @@
             <a href="{% url 'feed_receitas' %}">← Voltar ao Feed de Receitas</a>
         </div>
     </div>
+
+    <script>
+        // Função para obter o token CSRF
+        function getCSRFToken() {
+            return document.querySelector('meta[name=csrf-token]').getAttribute('content');
+        }
+
+        // Adicionar evento de hover nas estrelas
+        document.addEventListener('DOMContentLoaded', function() {
+            const stars = document.querySelectorAll('.star');
+            
+            stars.forEach(star => {
+                star.addEventListener('mouseenter', function() {
+                    const rating = parseInt(this.dataset.rating);
+                    highlightStars(rating);
+                });
+                
+                star.addEventListener('mouseleave', function() {
+                    resetStars();
+                });
+            });
+        });
+
+        function highlightStars(rating) {
+            const stars = document.querySelectorAll('.star');
+            stars.forEach((star, index) => {
+                if (index < rating) {
+                    star.style.color = '#ffc107';
+                } else {
+                    star.style.color = '#ddd';
+                }
+            });
+        }
+
+        function resetStars() {
+            const stars = document.querySelectorAll('.star');
+            stars.forEach(star => {
+                star.style.color = '#ddd';
+            });
+        }
+
+        function avaliarReceita(nota) {
+            console.log('Avaliando receita com nota:', nota); // Debug
+            
+            // Destacar as estrelas clicadas
+            highlightStars(nota);
+            
+            // Mostrar feedback visual temporário
+            const messageDiv = document.getElementById('avaliacao-message');
+            messageDiv.innerHTML = '<span style="color: blue;">Enviando avaliação...</span>';
+            
+            // Obter token CSRF
+            const csrftoken = getCSRFToken();
+            
+            fetch('{% url "api_avaliar_receita" receita.id %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken,
+                },
+                body: JSON.stringify({
+                    'nota': nota
+                })
+            })
+            .then(response => {
+                console.log('Response status:', response.status); // Debug
+                return response.json();
+            })
+            .then(data => {
+                console.log('Response data:', data); // Debug
+                if (data.success) {
+                    messageDiv.innerHTML = `<span style="color: green;">${data.message}</span>`;
+                    // Recarregar a página para atualizar as estatísticas
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1500);
+                } else {
+                    messageDiv.innerHTML = `<span style="color: red;">Erro: ${data.error}</span>`;
+                    resetStars();
+                }
+            })
+            .catch(error => {
+                console.error('Fetch error:', error); // Debug
+                messageDiv.innerHTML = '<span style="color: red;">Erro ao enviar avaliação. Tente novamente.</span>';
+                resetStars();
+            });
+        }
+    </script>
+
 </body>
 </html>

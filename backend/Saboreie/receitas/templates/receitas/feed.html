@@ -50,18 +50,16 @@
                 
                 <p>{{ receita.descricao|truncatewords:30 }}</p>
                 
-                <!-- Estatísticas -->
-                <div>
-                    {% if receita.total_avaliacoes > 0 %}
-                        <span><strong>★ {{ receita.media_bayesiana }}/5</strong></span> 
-                        <span>({{ receita.total_avaliacoes }} avaliação{{ receita.total_avaliacoes|pluralize:"ões" }})</span>
-                    {% else %}
-                        <span>Sem avaliações</span>
-                    {% endif %}
-                    <span> | {{ receita.total_comentarios }} comentário{{ receita.total_comentarios|pluralize:"s" }}</span>
-                </div>
-                
-                <!-- Ações -->
+                    <!-- Estatísticas -->
+                    <div>
+                        {% if receita.total_avaliacoes > 0 %}
+                            <span><strong>★ {{ receita.media_avaliacoes }}/5</strong></span> 
+                            <span>({{ receita.total_avaliacoes }} avaliação{{ receita.total_avaliacoes|pluralize:"ões" }})</span>
+                        {% else %}
+                            <span>Sem avaliações</span>
+                        {% endif %}
+                        <span> | {{ receita.total_comentarios }} comentário{{ receita.total_comentarios|pluralize:"s" }}</span>
+                    </div>                <!-- Ações -->
                 <div>
                     <a href="{% url 'ver_receita_feed' receita.id %}">Ver Receita Completa</a>
                     

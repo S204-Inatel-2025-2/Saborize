@@ -4,10 +4,13 @@ from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.core.paginator import Paginator
+from django.db.models import Q, Avg
+from django.template.context_processors import csrf
 import json
 
 from .forms import ReceitaForm as CriarReceita
-from .models import Receita, Comentario
+from .models import Receita, Comentario, Avaliacao
 from autenticacao.models import User
 
 
@@ -307,6 +310,9 @@ def ver_receita_feed(request, receita_id):
         'from_feed': True  # Flag para indicar que veio do feed
     }
     
+    # Adicionar token CSRF ao context
+    context.update(csrf(request))
+    
     return render(request, 'receitas/receita_feed.html', context)
 
 
@@ -383,6 +389,155 @@ def api_feed_receitas(request):
                 'user_authenticated': request.user.is_authenticated
             }
         })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': 'Erro interno do servidor'
+        }, status=500)
+
+
+# =============================================================================
+# SISTEMA DE AVALIAÇÕES
+# =============================================================================
+
+@login_required
+@require_http_methods(["POST"])
+def avaliar_receita(request, receita_id):
+    """
+    API para avaliar uma receita (1-5 estrelas)
+    """
+    try:
+        receita = get_object_or_404(Receita, id=receita_id)
+        
+        # Parse do JSON
+        data = json.loads(request.body)
+        nota = data.get('nota')
+        
+        # Validação
+        if not nota or not isinstance(nota, int) or nota < 1 or nota > 5:
+            return JsonResponse({
+                'success': False,
+                'error': 'Nota deve ser um número inteiro entre 1 e 5'
+            }, status=400)
+        
+        # Não permitir autoavaliação
+        if receita.user == request.user:
+            return JsonResponse({
+                'success': False,
+                'error': 'Você não pode avaliar sua própria receita'
+            }, status=400)
+        
+        # Criar ou atualizar avaliação
+        avaliacao, created = Avaliacao.objects.update_or_create(
+            receita=receita,
+            usuario=request.user,
+            defaults={'nota': nota}
+        )
+        
+        action = 'criada' if created else 'atualizada'
+        
+        return JsonResponse({
+            'success': True,
+            'message': f'Avaliação {action} com sucesso!',
+            'avaliacao': {
+                'nota': avaliacao.nota,
+                'created': created
+            },
+            'receita_stats': {
+                'total_avaliacoes': receita.total_avaliacoes,
+                'media_avaliacoes': receita.media_avaliacoes
+            }
+        })
+        
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'success': False,
+            'error': 'Dados JSON inválidos'
+        }, status=400)
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': 'Erro interno do servidor'
+        }, status=500)
+
+
+@require_http_methods(["GET"])
+def listar_avaliacoes(request, receita_id):
+    """
+    API para listar todas as avaliações de uma receita
+    """
+    try:
+        receita = get_object_or_404(Receita, id=receita_id)
+        avaliacoes = receita.avaliacoes.all()
+        
+        # Verifica se o usuário atual já avaliou
+        user_avaliacao = None
+        if request.user.is_authenticated:
+            try:
+                user_avaliacao = avaliacoes.get(usuario=request.user)
+            except Avaliacao.DoesNotExist:
+                pass
+        
+        avaliacoes_list = []
+        for avaliacao in avaliacoes:
+            avaliacoes_list.append({
+                'id': avaliacao.id,
+                'usuario': avaliacao.usuario.username,
+                'nota': avaliacao.nota,
+                'criada_em': avaliacao.criada_em.strftime('%d/%m/%Y %H:%M'),
+                'atualizada_em': avaliacao.atualizada_em.strftime('%d/%m/%Y %H:%M') if avaliacao.atualizada_em != avaliacao.criada_em else None
+            })
+        
+        return JsonResponse({
+            'success': True,
+            'receita': {
+                'id': receita.id,
+                'titulo': receita.titulo,
+                'total_avaliacoes': receita.total_avaliacoes,
+                'media_avaliacoes': receita.media_avaliacoes
+            },
+            'avaliacoes': avaliacoes_list,
+            'user_avaliacao': {
+                'nota': user_avaliacao.nota if user_avaliacao else None,
+                'criada_em': user_avaliacao.criada_em.strftime('%d/%m/%Y %H:%M') if user_avaliacao else None
+            } if request.user.is_authenticated else None
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': 'Erro interno do servidor'
+        }, status=500)
+
+
+@login_required
+@require_http_methods(["DELETE"])
+def remover_avaliacao(request, receita_id):
+    """
+    API para remover a avaliação do usuário de uma receita
+    """
+    try:
+        receita = get_object_or_404(Receita, id=receita_id)
+        
+        try:
+            avaliacao = Avaliacao.objects.get(receita=receita, usuario=request.user)
+            avaliacao.delete()
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Avaliação removida com sucesso!',
+                'receita_stats': {
+                    'total_avaliacoes': receita.total_avaliacoes,
+                    'media_avaliacoes': receita.media_avaliacoes
+                }
+            })
+            
+        except Avaliacao.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'error': 'Você não avaliou esta receita'
+            }, status=404)
         
     except Exception as e:
         return JsonResponse({
