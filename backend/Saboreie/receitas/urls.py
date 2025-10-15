@@ -20,6 +20,11 @@ urlpatterns = [
     path('api/comentario/editar/<int:comentario_id>/', views.editar_comentario, name='api_editar_comentario'),
     path('api/comentario/deletar/<int:comentario_id>/', views.deletar_comentario, name='api_deletar_comentario'),
     
+    # APIs para avaliações (requer login para avaliar)
+    path('api/avaliacoes/<int:receita_id>/', views.listar_avaliacoes, name='listar_avaliacoes'),
+    path('api/avaliacao/criar/<int:receita_id>/', views.avaliar_receita, name='api_avaliar_receita'),
+    path('api/avaliacao/remover/<int:receita_id>/', views.remover_avaliacao, name='api_remover_avaliacao'),
+    
     # API do feed (acessível para todos)
     path('api/feed/', views.api_feed_receitas, name='api_feed_receitas'),
 ]

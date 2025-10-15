@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.validators import MinValueValidator, MaxValueValidator
 from autenticacao.models import User
 
 class Receita(models.Model):
@@ -29,6 +30,18 @@ class Receita(models.Model):
     def total_comentarios(self):
         return self.comentarios.count()
 
+    @property
+    def total_avaliacoes(self):
+        return self.avaliacoes.count()
+
+    @property
+    def media_avaliacoes(self):
+        """Calcula a média simples das avaliações"""
+        avaliacoes = self.avaliacoes.all()
+        if not avaliacoes:
+            return 0
+        return round(sum([av.nota for av in avaliacoes]) / len(avaliacoes), 1)
+
 
 class Comentario(models.Model):
     receita = models.ForeignKey(Receita, on_delete=models.CASCADE, related_name='comentarios')
@@ -44,3 +57,23 @@ class Comentario(models.Model):
 
     def __str__(self):
         return f"Comentário de {self.usuario.username} em {self.receita.titulo}"
+
+
+class Avaliacao(models.Model):
+    receita = models.ForeignKey(Receita, on_delete=models.CASCADE, related_name='avaliacoes')
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE, related_name='avaliacoes')
+    nota = models.IntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(5)],
+        help_text="Nota de 1 a 5 estrelas"
+    )
+    criada_em = models.DateTimeField(auto_now_add=True)
+    atualizada_em = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('receita', 'usuario')  # Um usuário só pode avaliar uma receita uma vez
+        ordering = ['-criada_em']
+        verbose_name = 'Avaliação'
+        verbose_name_plural = 'Avaliações'
+
+    def __str__(self):
+        return f"{self.usuario.username} avaliou {self.receita.titulo} com {self.nota} estrelas"
