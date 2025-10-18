@@ -1,148 +1,125 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Feed de Receitas - Saborize</title>
-    <meta charset="utf-8">
-</head>
-<body>
-    <h1>Feed de Receitas - Saborize</h1>
+{% extends 'base.html' %}
 
-    <!-- Informações do usuário -->
-    <div>
-        {% if user.is_authenticated %}
-            <p>Bem-vindo, <strong>{{ user.username }}</strong>! 
-            <a href="{% url 'listar_receitas' %}">Minhas Receitas</a> |
-            <a href="{% url 'criar_receita' %}">Criar Receita</a> |
-            <a href="{% url 'logout' %}">Logout</a></p>
-        {% else %}
-            <p>Bem-vindo ao Saborize! 
-            <a href="{% url 'paginaLogin' %}">Fazer Login</a> |
-            <a href="{% url 'registrarUser' %}">Registrar-se</a></p>
-        {% endif %}
-    </div>
+{% block title %}Feed de Receitas{% endblock title %}
 
-    <!-- Filtros de busca e ordenação -->
-    <form method="GET">
-        <div>
-            <input type="text" name="busca" value="{{ busca }}" placeholder="Buscar receitas...">
-            <select name="ordem">
-                {% for valor, nome in opcoes_ordenacao %}
-                    <option value="{{ valor }}" {% if ordenacao == valor %}selected{% endif %}>{{ nome }}</option>
-                {% endfor %}
-            </select>
-            <button type="submit">Filtrar</button>
+{% block content %}
+
+<!-- Configuração do Layout da Navbar -->
+<nav class="navbar navbar-expand-lg navbar-custom">
+    <div class="container">
+        <a class="navbar-brand" href="#">SABORIZE</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                {% if user.is_authenticated %}
+                    <li class="nav-item"><a class="nav-link" href="{% url 'listar_receitas' %}">Minhas Receitas</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'criar_receita' %}">Criar Receita</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'logout' %}">Logout</a></li>
+                {% else %}
+                    <li class="nav-item"><a class="nav-link" href="{% url 'paginaLogin' %}">Login</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'registrarUser' %}">Registrar</a></li>
+                {% endif %}
+            </ul>
         </div>
+    </div>
+</nav>
+
+<!-- Configuração do Layout do Conteúdo principal da página -->
+<div class="container mt-5">
+    <h1 class="text-center mb-4">Feed de Receitas</h1>
+
+    <!-- Filtros de busca -->
+    <form method="GET" class="d-flex justify-content-center mb-4 gap-2">
+        <input type="text" name="busca" value="{{ busca }}" placeholder="Buscar receitas..." class="form-control w-50">
+        <select name="ordem" class="form-select w-auto">
+            {% for valor, nome in opcoes_ordenacao %}
+                <option value="{{ valor }}" {% if ordenacao == valor %}selected{% endif %}>{{ nome }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-custom">Filtrar</button>
         {% if busca %}
-            <a href="{% url 'feed_receitas' %}">Limpar busca</a>
+            <a href="{% url 'feed_receitas' %}" class="btn btn-secondary">Limpar</a>
         {% endif %}
     </form>
 
-    <p><strong>Total:</strong> {{ total_receitas }} receita{{ total_receitas|pluralize }}</p>
+    <p class="text-center"><strong>Total:</strong> {{ total_receitas }} receita{{ total_receitas|pluralize }}</p>
 
-        <!-- Lista de receitas -->
-            <!-- Lista de receitas -->
-    <div>
+    <!-- Lista de receitas -->
+    <div class="row g-4">
         {% for receita in receitas %}
-            <div>
-                <h3><a href="{% url 'ver_receita_feed' receita.id %}">{{ receita.titulo }}</a></h3>
-                
-                <p><strong>Por:</strong> {{ receita.user.username }} | <strong>Publicada em:</strong> {{ receita.criada_em|date:"d/m/Y H:i" }}</p>
-                
-                <p>{{ receita.descricao|truncatewords:30 }}</p>
-                
-                    <!-- Estatísticas -->
-                    <div>
+            <div class="col-md-6">
+                <div class="card card-custom p-3">
+                    <h4><a href="{% url 'ver_receita_feed' receita.id %}" class="text-decoration-none text-dark">{{ receita.titulo }}</a></h4>
+                    <p><strong>Por:</strong> {{ receita.user.username }} | <strong>Publicada em:</strong> {{ receita.criada_em|date:"d/m/Y H:i" }}</p>
+                    <p>{{ receita.descricao|truncatewords:30 }}</p>
+                    <div class="mb-2">
                         {% if receita.total_avaliacoes > 0 %}
-                            <span><strong>★ {{ receita.media_avaliacoes }}/5</strong></span> 
+                            <span class="fw-bold">★ {{ receita.media_avaliacoes }}/5</span>
                             <span>({{ receita.total_avaliacoes }} avaliação{{ receita.total_avaliacoes|pluralize:"ões" }})</span>
                         {% else %}
                             <span>Sem avaliações</span>
                         {% endif %}
                         <span> | {{ receita.total_comentarios }} comentário{{ receita.total_comentarios|pluralize:"s" }}</span>
-                    </div>                <!-- Ações -->
-                <div>
-                    <a href="{% url 'ver_receita_feed' receita.id %}">Ver Receita Completa</a>
-                    
-                    {% if user.is_authenticated %}
-                        <a href="{% url 'fazer_comentario' receita.id %}">Comentar</a>
-                    {% else %}
-                        <a href="{% url 'paginaLogin' %}?next={% url 'fazer_comentario' receita.id %}">Login para Comentar</a>
-                    {% endif %}
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'ver_receita_feed' receita.id %}" class="btn btn-custom btn-sm">Ver Receita</a>
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'fazer_comentario' receita.id %}" class="btn btn-outline-warning btn-sm">Comentar</a>
+                        {% else %}
+                            <a href="{% url 'paginaLogin' %}?next={% url 'fazer_comentario' receita.id %}" class="btn btn-outline-secondary btn-sm">Login para Comentar</a>
+                        {% endif %}
+                    </div>
                 </div>
-                <hr>
             </div>
         {% empty %}
-            <div>
-                <h3>Nenhuma receita encontrada</h3>
-                {% if busca %}
-                    <p>Nenhuma receita encontrada para "{{ busca }}".</p>
-                    <a href="{% url 'feed_receitas' %}">Ver todas as receitas</a>
-                {% else %}
-                    <p>Ainda não há receitas públicas. 
-                    {% if user.is_authenticated %}
-                        <a href="{% url 'criar_receita' %}">Seja o primeiro a criar uma!</a>
+            <div class="col-12">
+                <div class="alert alert-warning text-center">
+                    Nenhuma receita encontrada.
+                    {% if busca %}
+                        <br>Nenhuma receita para "{{ busca }}". <a href="{% url 'feed_receitas' %}">Ver todas</a>
                     {% else %}
-                        <a href="{% url 'registrarUser' %}">Registre-se para criar receitas!</a>
+                        <br>Ainda não há receitas públicas.
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'criar_receita' %}">Seja o primeiro a criar!</a>
+                        {% else %}
+                            <a href="{% url 'registrarUser' %}">Registre-se para criar receitas!</a>
+                        {% endif %}
                     {% endif %}
-                    </p>
-                {% endif %}
+                </div>
             </div>
         {% endfor %}
     </div>
-    
-    <!-- Paginação -->
+
+    <!-- Divisao de paginas -->
     {% if receitas.has_other_pages %}
-        <div>
-            {% if receitas.has_previous %}
-                <a href="?page={{ receitas.previous_page_number }}{% if busca %}&busca={{ busca }}{% endif %}{% if ordenacao %}&ordem={{ ordenacao }}{% endif %}">&laquo; Anterior</a>
-            {% endif %}
-            
-            <span>Página {{ receitas.number }} de {{ receitas.paginator.num_pages }}</span>
-            
-            {% if receitas.has_next %}
-                <a href="?page={{ receitas.next_page_number }}{% if busca %}&busca={{ busca }}{% endif %}{% if ordenacao %}&ordem={{ ordenacao }}{% endif %}">Próxima &raquo;</a>
-            {% endif %}
-        </div>
-    {% endif %}
-    
-    <!-- Footer -->
-    <hr>
-    <div>
-        <p>Saborize - Compartilhe suas receitas favoritas!</p>
-        {% if not user.is_authenticated %}
-            <p><a href="{% url 'registrarUser' %}">Crie sua conta gratuita</a> para compartilhar suas próprias receitas.</p>
-        {% endif %}
-    </div>
-
-</body>
-</html>
-        
-        <!-- Paginação -->
-        {% if receitas.has_other_pages %}
-            <div style="text-align: center; margin-top: 30px;">
+        <nav aria-label="Paginação" class="mt-4">
+            <ul class="pagination justify-content-center">
                 {% if receitas.has_previous %}
-                    <a href="?page={{ receitas.previous_page_number }}{% if busca %}&busca={{ busca }}{% endif %}{% if ordenacao %}&ordem={{ ordenacao }}{% endif %}" 
-                       style="background-color: #6c757d; color: white; padding: 8px 12px; text-decoration: none; margin: 0 5px; border-radius: 4px;">&laquo; Anterior</a>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ receitas.previous_page_number }}{% if busca %}&busca={{ busca }}{% endif %}{% if ordenacao %}&ordem={{ ordenacao }}{% endif %}">&laquo; Anterior</a>
+                    </li>
                 {% endif %}
-                
-                <span style="margin: 0 15px; font-weight: bold;">
-                    Página {{ receitas.number }} de {{ receitas.paginator.num_pages }}
-                </span>
-                
+                <li class="page-item disabled"><span class="page-link">Página {{ receitas.number }} de {{ receitas.paginator.num_pages }}</span></li>
                 {% if receitas.has_next %}
-                    <a href="?page={{ receitas.next_page_number }}{% if busca %}&busca={{ busca }}{% endif %}{% if ordenacao %}&ordem={{ ordenacao }}{% endif %}" 
-                       style="background-color: #6c757d; color: white; padding: 8px 12px; text-decoration: none; margin: 0 5px; border-radius: 4px;">Próxima &raquo;</a>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ receitas.next_page_number }}{% if busca %}&busca={{ busca }}{% endif %}{% if ordenacao %}&ordem={{ ordenacao }}{% endif %}">Próxima &raquo;</a>
+                    </li>
                 {% endif %}
-            </div>
-        {% endif %}
-        
-        <!-- Footer -->
-        <hr style="margin-top: 40px;">
-        <div style="text-align: center; padding: 20px; color: #666;">
-            <p>🍽️ Saborize - Compartilhe suas receitas favoritas!</p>
-            {% if not user.is_authenticated %}
-                <p><a href="{% url 'registrarUser' %}" style="color: #007bff; text-decoration: none;">Crie sua conta gratuita</a> para compartilhar suas próprias receitas.</p>
-            {% endif %}
-        </div>
-    </div>
+            </ul>
+        </nav>
+    {% endif %}
 
+    <!-- Rodapé -->
+    <hr>
+    <footer class="text-center text-muted py-3">
+        <p>🍽️ Saborize - Compartilhe suas receitas favoritas!</p>
+        {% if not user.is_authenticated %}
+            <p><a href="{% url 'registrarUser' %}" class="text-warning text-decoration-none">Crie sua conta gratuita</a> para compartilhar suas receitas.</p>
+        {% endif %}
+    </footer>
+</div>
+
+{% endblock content %}
