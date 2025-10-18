@@ -1,245 +1,96 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>{{ receita.titulo }} - Saborize</title>
-    <meta name="csrf-token" content="{{ csrf_token }}">
-    <style>
-        .star {
-            cursor: pointer;
-            font-size: 24px;
-            color: #ddd;
-            margin-right: 5px;
-            transition: color 0.2s;
-        }
-        .star:hover {
-            color: #ffc107;
-        }
-        .star.selected {
-            color: #ffc107;
-        }
-        #avaliacao-message {
-            margin-top: 10px;
-            font-weight: bold;
-        }
-    </style>
-</head>
-<body>
-    <!-- Navegação -->
-    <div>
-        <a href="{% url 'feed_receitas' %}">← Voltar ao Feed</a>
+{% extends 'base.html' %}
+
+{% block title %}{{ receita.titulo }} - Saborize{% endblock title %}
+
+{% block content %}
+<div class="container mt-4">
+
+    <!-- Configuração do Layout da Navbar -->
+    <div class="mb-3">
+        <a href="{% url 'feed_receitas' %}" class="btn btn-secondary btn-sm">&larr; Voltar ao Feed</a>
         {% if user.is_authenticated %}
-            | <span>Logado como <strong>{{ user.username }}</strong></span>
-            | <a href="{% url 'listar_receitas' %}">Minhas Receitas</a>
-            | <a href="{% url 'logout' %}">Logout</a>
+            <span class="ms-3">Logado como <strong>{{ user.username }}</strong></span>
+            <a href="{% url 'listar_receitas' %}" class="btn btn-custom btn-sm ms-2">Minhas Receitas</a>
+            <a href="{% url 'logout' %}" class="btn btn-custom btn-sm ms-2">Logout</a>
         {% else %}
-            | <a href="{% url 'paginaLogin' %}">Fazer Login</a>
-            | <a href="{% url 'registrarUser' %}">Registrar-se</a>
+            <a href="{% url 'paginaLogin' %}" class="btn btn-custom btn-sm ms-2">Fazer Login</a>
+            <a href="{% url 'registrarUser' %}" class="btn btn-custom btn-sm ms-2">Registrar-se</a>
         {% endif %}
     </div>
 
-    <!-- Conteúdo da receita -->
-    <div>
-        <h1>{{ receita.titulo }}</h1>
-        
-        <div>
-            <p><strong>Autor:</strong> {{ receita.user.username }}</p>
-            <p><strong>Publicada em:</strong> {{ receita.criada_em|date:"d/m/Y H:i" }}</p>
+    <!-- Informações da receita -->
+    <div class="card card-custom mb-4">
+        <div class="card-body">
+            <h1 class="card-title">{{ receita.titulo }}</h1>
+            <p><strong>Autor:</strong> {{ receita.user.username }} | <strong>Publicada em:</strong> {{ receita.criada_em|date:"d/m/Y H:i" }}</p>
             {% if receita.atualizada_em != receita.criada_em %}
                 <p><strong>Última atualização:</strong> {{ receita.atualizada_em|date:"d/m/Y H:i" }}</p>
             {% endif %}
+
+            <h5>Descrição:</h5>
+            <p>{{ receita.descricao }}</p>
+
+            <h5>Ingredientes:</h5>
+            <pre>{{ receita.ingredientes }}</pre>
+
+            <h5>Modo de preparo:</h5>
+            <pre>{{ receita.passos }}</pre>
         </div>
-        
-        <h2>Descrição:</h2>
-        <p>{{ receita.descricao }}</p>
-        
-        <h2>Ingredientes:</h2>
-        <pre>{{ receita.ingredientes }}</pre>
-        
-        <h2>Modo de preparo:</h2>
-        <pre>{{ receita.passos }}</pre>
-        
-        <hr>
-        
-        <!-- Seção de avaliações -->
-        <h2>Avaliações</h2>
-        <div>
+    </div>
+
+    <!-- Avaliações -->
+    <div class="card card-custom mb-4">
+        <div class="card-body">
+            <h3>Avaliações</h3>
             {% if receita.total_avaliacoes > 0 %}
                 <p><strong>★ {{ receita.media_avaliacoes }}/5</strong> ({{ receita.total_avaliacoes }} avaliação{{ receita.total_avaliacoes|pluralize:"ões" }})</p>
             {% else %}
                 <p>Nenhuma avaliação ainda.</p>
             {% endif %}
-            
+
             {% if user.is_authenticated and user != receita.user %}
-                <div id="avaliacao-form">
-                    <p><strong>Avalie esta receita:</strong></p>
-                    <div id="stars-container">
-                        <span class="star" data-rating="1" onclick="avaliarReceita(1)">★</span>
-                        <span class="star" data-rating="2" onclick="avaliarReceita(2)">★</span>
-                        <span class="star" data-rating="3" onclick="avaliarReceita(3)">★</span>
-                        <span class="star" data-rating="4" onclick="avaliarReceita(4)">★</span>
-                        <span class="star" data-rating="5" onclick="avaliarReceita(5)">★</span>
-                    </div>
-                    <!-- Botões alternativos para teste -->
-                    <div style="margin-top: 10px;">
-                        <button onclick="avaliarReceita(1)" style="margin: 2px;">1 Estrela</button>
-                        <button onclick="avaliarReceita(2)" style="margin: 2px;">2 Estrelas</button>
-                        <button onclick="avaliarReceita(3)" style="margin: 2px;">3 Estrelas</button>
-                        <button onclick="avaliarReceita(4)" style="margin: 2px;">4 Estrelas</button>
-                        <button onclick="avaliarReceita(5)" style="margin: 2px;">5 Estrelas</button>
-                    </div>
-                    <div id="avaliacao-message"></div>
+                <p><strong>Avalie esta receita:</strong></p>
+                <div id="stars-container" class="mb-2">
+                    <span class="star" data-rating="1" onclick="avaliarReceita(1)">★</span>
+                    <span class="star" data-rating="2" onclick="avaliarReceita(2)">★</span>
+                    <span class="star" data-rating="3" onclick="avaliarReceita(3)">★</span>
+                    <span class="star" data-rating="4" onclick="avaliarReceita(4)">★</span>
+                    <span class="star" data-rating="5" onclick="avaliarReceita(5)">★</span>
                 </div>
+                <div id="avaliacao-message" class="fw-bold"></div>
             {% elif user == receita.user %}
                 <p><em>Você não pode avaliar sua própria receita.</em></p>
             {% else %}
                 <p><a href="{% url 'paginaLogin' %}?next={{ request.get_full_path }}">Faça login</a> para avaliar esta receita.</p>
             {% endif %}
         </div>
-        
-        <hr>
-        
-        <!-- Seção de comentários -->
-        <h2>Comentários ({{ total_comentarios }})</h2>
-        
-        <!-- Botão para comentar -->
-        <div>
+    </div>
+
+    <!-- Comentários -->
+    <div class="card card-custom mb-4">
+        <div class="card-body">
+            <h3>Comentários ({{ total_comentarios }})</h3>
+
             {% if user.is_authenticated %}
-                <a href="{% url 'fazer_comentario' receita.id %}">
-                   Comentar nesta receita
-                </a>
+                <a href="{% url 'fazer_comentario' receita.id %}" class="btn btn-custom mb-3">Comentar nesta receita</a>
             {% else %}
-                <div>
-                    <p><strong>Quer comentar?</strong> 
-                    <a href="{% url 'paginaLogin' %}?next={{ request.get_full_path }}">Faça login</a> ou 
-                    <a href="{% url 'registrarUser' %}?next={{ request.get_full_path }}">registre-se</a> para participar da conversa!</p>
-                </div>
+                <p><strong>Quer comentar?</strong> <a href="{% url 'paginaLogin' %}?next={{ request.get_full_path }}">Faça login</a> ou <a href="{% url 'registrarUser' %}?next={{ request.get_full_path }}">registre-se</a> para participar da conversa!</p>
             {% endif %}
-        </div>
-        
-        <hr>
-        
-        <!-- Lista de comentários -->
-        <div>
+
             {% for comentario in comentarios %}
-                <div>
-                    <div>
-                        <strong>{{ comentario.usuario.username }}</strong>
-                        <span>
-                            - {{ comentario.criado_em|date:"d/m/Y H:i" }}
-                            {% if comentario.atualizado_em != comentario.criado_em %}
-                                <em>(editado em {{ comentario.atualizado_em|date:"d/m/Y H:i" }})</em>
-                            {% endif %}
-                        </span>
-                    </div>
+                <div class="border p-2 mb-2 rounded">
+                    <div><strong>{{ comentario.usuario.username }}</strong> - {{ comentario.criado_em|date:"d/m/Y H:i" }} {% if comentario.atualizado_em != comentario.criado_em %}<em>(editado em {{ comentario.atualizado_em|date:"d/m/Y H:i" }})</em>{% endif %}</div>
                     <div>{{ comentario.texto }}</div>
-                    <hr>
                 </div>
             {% empty %}
-                <div>
-                    <p>Nenhum comentário ainda.</p>
-                    {% if user.is_authenticated %}
-                        <p>Seja o primeiro a comentar sobre esta receita!</p>
-                    {% else %}
-                        <p>Faça login para ser o primeiro a comentar!</p>
-                    {% endif %}
-                </div>
+                <p>Nenhum comentário ainda.</p>
             {% endfor %}
-        </div>
-        
-        <!-- Botão de voltar -->
-        <hr>
-        <div>
-            <a href="{% url 'feed_receitas' %}">← Voltar ao Feed de Receitas</a>
         </div>
     </div>
 
-    <script>
-        // Função para obter o token CSRF
-        function getCSRFToken() {
-            return document.querySelector('meta[name=csrf-token]').getAttribute('content');
-        }
+</div>
 
-        // Adicionar evento de hover nas estrelas
-        document.addEventListener('DOMContentLoaded', function() {
-            const stars = document.querySelectorAll('.star');
-            
-            stars.forEach(star => {
-                star.addEventListener('mouseenter', function() {
-                    const rating = parseInt(this.dataset.rating);
-                    highlightStars(rating);
-                });
-                
-                star.addEventListener('mouseleave', function() {
-                    resetStars();
-                });
-            });
-        });
+<script>
 
-        function highlightStars(rating) {
-            const stars = document.querySelectorAll('.star');
-            stars.forEach((star, index) => {
-                if (index < rating) {
-                    star.style.color = '#ffc107';
-                } else {
-                    star.style.color = '#ddd';
-                }
-            });
-        }
-
-        function resetStars() {
-            const stars = document.querySelectorAll('.star');
-            stars.forEach(star => {
-                star.style.color = '#ddd';
-            });
-        }
-
-        function avaliarReceita(nota) {
-            console.log('Avaliando receita com nota:', nota); // Debug
-            
-            // Destacar as estrelas clicadas
-            highlightStars(nota);
-            
-            // Mostrar feedback visual temporário
-            const messageDiv = document.getElementById('avaliacao-message');
-            messageDiv.innerHTML = '<span style="color: blue;">Enviando avaliação...</span>';
-            
-            // Obter token CSRF
-            const csrftoken = getCSRFToken();
-            
-            fetch('{% url "api_avaliar_receita" receita.id %}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrftoken,
-                },
-                body: JSON.stringify({
-                    'nota': nota
-                })
-            })
-            .then(response => {
-                console.log('Response status:', response.status); // Debug
-                return response.json();
-            })
-            .then(data => {
-                console.log('Response data:', data); // Debug
-                if (data.success) {
-                    messageDiv.innerHTML = `<span style="color: green;">${data.message}</span>`;
-                    // Recarregar a página para atualizar as estatísticas
-                    setTimeout(() => {
-                        location.reload();
-                    }, 1500);
-                } else {
-                    messageDiv.innerHTML = `<span style="color: red;">Erro: ${data.error}</span>`;
-                    resetStars();
-                }
-            })
-            .catch(error => {
-                console.error('Fetch error:', error); // Debug
-                messageDiv.innerHTML = '<span style="color: red;">Erro ao enviar avaliação. Tente novamente.</span>';
-                resetStars();
-            });
-        }
-    </script>
-
-</body>
-</html>
+</script>
+{% endblock content %}
