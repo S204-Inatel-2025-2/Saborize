@@ -1,177 +1,191 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Comentar - {{ receita.titulo }}</title>
-</head>
-<body>
-    <h1>Comentar na receita: {{ receita.titulo }}</h1>
-    
-    <div style="background-color: #f5f5f5; padding: 15px; margin: 10px 0; border-radius: 5px;">
-        <h3>{{ receita.titulo }}</h3>
-        <p><strong>Por:</strong> {{ receita.user.username }}</p>
-        <p><strong>Descrição:</strong> {{ receita.descricao|truncatewords:20 }}</p>
+{% extends 'base.html' %}
+
+{% block title %}Comentar - {{ receita.titulo }}{% endblock title %}
+
+{% block content %}
+<!-- Configuração do Layout da Navbar -->
+<nav class="navbar navbar-expand-lg navbar-custom">
+    <div class="container d-flex align-items-center">
+        <a href="javascript:history.back()" class="me-3 text-decoration-none text-light">
+            <i class="bi bi-arrow-left fs-4"></i>
+        </a>
+        <a class="navbar-brand" href="{% url 'feed_receitas' %}">SABORIZE</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                {% if request.user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+                    </li>
+                {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'paginaLogin' %}">Login</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'registrarUser' %}">Registrar</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
     </div>
-    
-    {% if user.is_authenticated %}
-        <h2>Escrever comentário:</h2>
-        <form id="comentario-form">
-            <textarea id="texto-comentario" placeholder="Escreva seu comentário sobre esta receita..." rows="6" cols="60" maxlength="500" required></textarea><br>
-            <small>Máximo 500 caracteres. Restam: <span id="caracteres-restantes">500</span></small><br><br>
-            <button type="submit">Enviar Comentário</button>
-            <button type="button" onclick="history.back()">Cancelar</button>
-        </form>
-        
-        <div id="mensagem" style="margin-top: 10px;"></div>
-    {% else %}
-        <p>Você precisa estar logado para comentar.</p>
-        <p><a href="/autenticacao/login/">Fazer Login</a></p>
-    {% endif %}
-    
-    <hr>
-    <h2>Comentários existentes ({{ total_comentarios }}):</h2>
-    
-    <div>
-        {% for comentario in comentarios %}
-            <div style="border: 1px solid #ddd; padding: 10px; margin: 10px 0; background-color: #fafafa;" data-comentario-id="{{ comentario.id }}">
-                <strong>{{ comentario.usuario.username }}</strong> - {{ comentario.criado_em|date:"d/m/Y H:i" }}
-                {% if comentario.atualizado_em != comentario.criado_em %}
-                    <em>(editado)</em>
+</nav>
+
+<!-- Configuração do Layout do Conteúdo principal da página -->
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card card-custom p-4">
+                <h1 class="text-center mb-4">Comentar na receita: {{ receita.titulo }}</h1>
+
+                <div class="p-3 mb-4 bg-light rounded shadow-sm">
+                    <h4>{{ receita.titulo }}</h4>
+                    <p><strong>Por:</strong> {{ receita.user.username }}</p>
+                    <p><strong>Descrição:</strong> {{ receita.descricao|truncatewords:20 }}</p>
+                </div>
+
+                {% if user.is_authenticated %}
+                    <form id="comentario-form" class="mb-4">
+                        <div class="mb-3">
+                            <label for="texto-comentario" class="form-label">Escreva seu comentário:</label>
+                            <textarea id="texto-comentario" class="form-control" rows="5" maxlength="500" placeholder="Escreva seu comentário sobre esta receita..." required></textarea>
+                            <small class="text-muted">Máximo 500 caracteres. Restam: <span id="caracteres-restantes">500</span></small>
+                        </div>
+                        <div class="d-flex justify-content-center gap-2">
+                            <button type="submit" class="btn btn-custom" >Enviar Comentário</button>
+                            <button type="button" class="btn btn-secondary" onclick="history.back()">Cancelar</button>
+                        </div>
+                    </form>
+                    <div id="mensagem" class="text-center"></div>
+                {% else %}
+                    <p class="text-center">Você precisa estar logado para comentar.</p>
+                    <div class="text-center">
+                        <a href="{% url 'paginaLogin' %}" class="btn btn-custom">Fazer Login</a>
+                    </div>
                 {% endif %}
-                {% if user == comentario.usuario or user == receita.user %}
-                    <button onclick="editarComentario('{{ comentario.id }}', '{{ comentario.texto|escapejs }}')" style="float: right; margin-left: 5px;">Editar</button>
-                    <button onclick="deletarComentario('{{ comentario.id }}')" style="float: right;">Deletar</button>
-                {% endif %}
-                <div style="margin-top: 8px; clear: both;" class="comentario-texto">{{ comentario.texto }}</div>
+
+                <hr>
+                <h3 class="mb-3">Comentários existentes ({{ total_comentarios }}):</h3>
+                {% for comentario in comentarios %}
+                    <div class="p-3 mb-3 border rounded bg-light" data-comentario-id="{{ comentario.id }}">
+                        <strong>{{ comentario.usuario.username }}</strong> - {{ comentario.criado_em|date:"d/m/Y H:i" }}
+                        {% if comentario.atualizado_em != comentario.criado_em %}
+                            <em>(editado)</em>
+                        {% endif %}
+                        {% if user == comentario.usuario or user == receita.user %}
+                            <div class="float-end">
+                                <button onclick="editarComentario('{{ comentario.id }}', '{{ comentario.texto|escapejs }}')" class="btn btn-sm btn-warning">Editar</button>
+                                <button onclick="deletarComentario('{{ comentario.id }}')" class="btn btn-sm btn-danger">Deletar</button>
+                            </div>
+                        {% endif %}
+                        <p class="mt-2">{{ comentario.texto }}</p>
+                    </div>
+                {% empty %}
+                    <p>Nenhum comentário ainda. Seja o primeiro!</p>
+                {% endfor %}
+
+                <div class="text-center mt-4">
+                    <a href="{% url 'ver_receita_feed' receita.id %}" class="btn btn-secondary">Voltar para a receita</a>
+                </div>
             </div>
-        {% empty %}
-            <p>Nenhum comentário ainda. Seja o primeiro!</p>
-        {% endfor %}
+        </div>
     </div>
-    
-    <hr>
-    <p><a href="{% url 'ver_receita' receita.id %}">Voltar para a receita</a></p>
+</div>
 
-    <script>
-        // Contador de caracteres
-        const textarea = document.getElementById('texto-comentario');
-        const contador = document.getElementById('caracteres-restantes');
-        
-        if (textarea && contador) {
-            textarea.addEventListener('input', function() {
-                const restantes = 500 - this.value.length;
-                contador.textContent = restantes;
-                contador.style.color = restantes < 50 ? 'red' : 'black';
-            });
-        }
+<!-- Script -->
+<script>
+    const textarea = document.getElementById('texto-comentario');
+    const contador = document.getElementById('caracteres-restantes');
+    if (textarea && contador) {
+        textarea.addEventListener('input', function() {
+            const restantes = 500 - this.value.length;
+            contador.textContent = restantes;
+            contador.style.color = restantes < 50 ? 'red' : 'black';
+        });
+    }
 
-        // Obter CSRF token
-        function getCookie(name) {
-            let cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                const cookies = document.cookie.split(';');
-                for (let i = 0; i < cookies.length; i++) {
-                    const cookie = cookies[i].trim();
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
                 }
             }
-            return cookieValue;
         }
-        const csrftoken = getCookie('csrftoken');
+        return cookieValue;
+    }
+    const csrftoken = getCookie('csrftoken');
 
-        // Criar comentário
-        const form = document.getElementById('comentario-form');
-        if (form) {
-            form.addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                const texto = document.getElementById('texto-comentario').value.trim();
-                if (!texto) {
-                    mostrarMensagem('Por favor, escreva um comentário.', 'error');
-                    return;
+    const form = document.getElementById('comentario-form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const texto = textarea.value.trim();
+            if (!texto) {
+                mostrarMensagem('Por favor, escreva um comentário.', 'error');
+                return;
+            }
+            fetch('/receitas/api/comentario/criar/{{ receita.id }}/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                body: JSON.stringify({texto: texto})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    mostrarMensagem('Comentário enviado com sucesso!', 'success');
+                    setTimeout(() => {
+                        window.location.href = "{% url 'ver_receita' receita.id %}";
+                    }, 1500);
+                } else {
+                    mostrarMensagem('Erro: ' + data.error, 'error');
                 }
+            })
+            .catch(() => mostrarMensagem('Erro ao enviar comentário', 'error'));
+        });
+    }
 
-                fetch('/receitas/api/comentario/criar/{{ receita.id }}/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': csrftoken
-                    },
-                    body: JSON.stringify({texto: texto})
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        mostrarMensagem('Comentário enviado com sucesso!', 'success');
-                        setTimeout(() => {
-                            window.location.href = "{% url 'ver_receita' receita.id %}";
-                        }, 1500);
-                    } else {
-                        mostrarMensagem('Erro: ' + data.error, 'error');
-                    }
-                })
-                .catch(error => {
-                    mostrarMensagem('Erro ao enviar comentário', 'error');
-                });
-            });
-        }
+    function mostrarMensagem(texto, tipo) {
+        const div = document.getElementById('mensagem');
+        div.innerHTML = `<p class="fw-bold ${tipo === 'success' ? 'text-success' : 'text-danger'}">${texto}</p>`;
+    }
 
-        // Mostrar mensagem
-        function mostrarMensagem(texto, tipo) {
-            const div = document.getElementById('mensagem');
-            div.innerHTML = `<p style="color: ${tipo === 'success' ? 'green' : 'red'}; font-weight: bold;">${texto}</p>`;
+    function deletarComentario(id) {
+        if (confirm('Tem certeza que deseja deletar este comentário?')) {
+            fetch('/receitas/api/comentario/deletar/' + id + '/', {
+                method: 'DELETE',
+                headers: {'X-CSRFToken': csrftoken}
+            })
+            .then(response => response.json())
+            .then(data => data.success ? location.reload() : alert('Erro: ' + data.error))
+            .catch(() => alert('Erro ao deletar comentário'));
         }
+    }
 
-        // Deletar comentário
-        function deletarComentario(comentarioId) {
-            if (confirm('Tem certeza que deseja deletar este comentário?')) {
-                fetch('/receitas/api/comentario/deletar/' + comentarioId + '/', {
-                    method: 'DELETE',
-                    headers: {
-                        'X-CSRFToken': csrftoken
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        location.reload();
-                    } else {
-                        alert('Erro: ' + data.error);
-                    }
-                })
-                .catch(error => {
-                    alert('Erro ao deletar comentário');
-                });
-            }
+    function editarComentario(id, textoAtual) {
+        const novoTexto = prompt('Editar comentário:', textoAtual);
+        if (novoTexto && novoTexto.trim() !== textoAtual) {
+            fetch('/receitas/api/comentario/editar/' + id + '/', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                body: JSON.stringify({texto: novoTexto.trim()})
+            })
+            .then(response => response.json())
+            .then(data => data.success ? location.reload() : alert('Erro: ' + data.error))
+            .catch(() => alert('Erro ao editar comentário'));
         }
-
-        // Editar comentário
-        function editarComentario(comentarioId, textoAtual) {
-            const novoTexto = prompt('Editar comentário:', textoAtual);
-            if (novoTexto !== null && novoTexto.trim() && novoTexto.trim() !== textoAtual) {
-                fetch('/receitas/api/comentario/editar/' + comentarioId + '/', {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': csrftoken
-                    },
-                    body: JSON.stringify({texto: novoTexto.trim()})
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        location.reload();
-                    } else {
-                        alert('Erro: ' + data.error);
-                    }
-                })
-                .catch(error => {
-                    alert('Erro ao editar comentário');
-                });
-            }
-        }
-    </script>
-</body>
-</html>
+    }
+</script>
+{% endblock content %}
