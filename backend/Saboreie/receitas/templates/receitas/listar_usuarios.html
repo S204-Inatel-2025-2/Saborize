@@ -3,7 +3,7 @@
 {% block title %}Usuários - Saborize{% endblock title %}
 
 {% block content %}
-<!-- Configuração do Layout da Navbar -->
+<!-- Navbar -->
 <nav class="navbar navbar-expand-lg navbar-custom">
     <div class="container d-flex align-items-center">
         <a href="javascript:history.back()" class="me-3 text-decoration-none text-light">
@@ -17,21 +17,16 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
                 {% if request.user.is_authenticated %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'listar_receitas' %}">Minhas Receitas</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'feed_seguidos' %}">Feed dos Seguidos</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'logout' %}">Logout</a>
-                    </li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'listar_receitas' %}">Minhas Receitas</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'feed_seguidos' %}">Feed dos Seguidos</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'logout' %}">Logout</a></li>
                 {% endif %}
             </ul>
         </div>
     </div>
 </nav>
 
+<!-- Conteúdo principal -->
 <div class="container mt-4">
     <div class="row">
         <div class="col-12">
@@ -44,23 +39,28 @@
                 <div class="row">
                     {% for usuario in usuarios %}
                         <div class="col-md-6 col-lg-4 mb-3">
-                            <div class="card">
+                            <div class="card shadow-sm border-0 rounded-3">
                                 <div class="card-body">
-                                    <h5 class="card-title">{{ usuario.username }}</h5>
-                                    <p class="card-text">
-                                        <small class="text-muted">
-                                            {{ usuario.total_receitas }} receita{{ usuario.total_receitas|pluralize:"s" }} pública{{ usuario.total_receitas|pluralize:"s" }}
-                                            <br>
-                                            {{ usuario.total_seguidores }} seguidor{{ usuario.total_seguidores|pluralize:"es" }}
-                                        </small>
+                                    <h5 class="card-title fw-bold">{{ usuario.username }}</h5>
+                                    <p class="card-text text-muted mb-3">
+                                        {{ usuario.total_receitas }} receita{{ usuario.total_receitas|pluralize:"s" }} pública{{ usuario.total_receitas|pluralize:"s" }}<br>
+                                        {{ usuario.total_seguidores }} seguidor{{ usuario.total_seguidores|pluralize:"es" }}
                                     </p>
-                                    
+
                                     {% if usuario.ja_seguindo %}
-                                        <button class="btn btn-secondary btn-sm" data-user-id="{{ usuario.id }}" data-username="{{ usuario.username }}" onclick="pararDeSeguir(this)">
+                                        <button 
+                                            class="btn btn-warning text-dark fw-bold btn-sm" 
+                                            data-user-id="{{ usuario.id }}" 
+                                            data-username="{{ usuario.username }}" 
+                                            onclick="pararDeSeguir(this)">
                                             Seguindo
                                         </button>
                                     {% else %}
-                                        <button class="btn btn-primary btn-sm" data-user-id="{{ usuario.id }}" data-username="{{ usuario.username }}" onclick="seguirUsuario(this)">
+                                        <button 
+                                            class="btn btn-secondary text-white fw-bold btn-sm" 
+                                            data-user-id="{{ usuario.id }}" 
+                                            data-username="{{ usuario.username }}" 
+                                            onclick="seguirUsuario(this)">
                                             Seguir
                                         </button>
                                     {% endif %}
@@ -78,8 +78,8 @@
     </div>
 </div>
 
+<!-- Script -->
 <script>
-    // Obter o token CSRF
     function getCookie(name) {
         let cookieValue = null;
         if (document.cookie && document.cookie !== '') {
@@ -102,69 +102,46 @@
         div.className = `alert alert-${tipo}`;
         div.textContent = texto;
         div.style.display = 'block';
-        
-        setTimeout(() => {
-            div.style.display = 'none';
-        }, 3000);
+        setTimeout(() => div.style.display = 'none', 3000);
     }
-    
+
     function seguirUsuario(button) {
         const userId = button.getAttribute('data-user-id');
         const username = button.getAttribute('data-username');
-        
         fetch(`/receitas/api/seguir/${userId}/`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrftoken
-            }
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken }
         })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
                 mostrarMensagem(data.message, 'success');
-                // Recarregar a página para atualizar o status
-                setTimeout(() => {
-                    location.reload();
-                }, 1000);
+                setTimeout(() => location.reload(), 1000);
             } else {
                 mostrarMensagem('Erro: ' + data.error, 'danger');
             }
         })
-        .catch(error => {
-            console.error('Erro:', error);
-            mostrarMensagem('Erro ao seguir usuário', 'danger');
-        });
+        .catch(() => mostrarMensagem('Erro ao seguir usuário', 'danger'));
     }
-    
+
     function pararDeSeguir(button) {
         const userId = button.getAttribute('data-user-id');
         const username = button.getAttribute('data-username');
-        
         if (confirm(`Tem certeza que deseja parar de seguir ${username}?`)) {
             fetch(`/receitas/api/parar-seguir/${userId}/`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrftoken
-                }
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken }
             })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
                     mostrarMensagem(data.message, 'info');
-                    // Recarregar a página para atualizar o status
-                    setTimeout(() => {
-                        location.reload();
-                    }, 1000);
+                    setTimeout(() => location.reload(), 1000);
                 } else {
                     mostrarMensagem('Erro: ' + data.error, 'danger');
                 }
             })
-            .catch(error => {
-                console.error('Erro:', error);
-                mostrarMensagem('Erro ao parar de seguir usuário', 'danger');
-            });
+            .catch(() => mostrarMensagem('Erro ao parar de seguir usuário', 'danger'));
         }
     }
 </script>

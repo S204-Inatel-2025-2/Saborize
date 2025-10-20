@@ -14,33 +14,9 @@
         user-select: none;
         display: inline-block;
     }
-    
-    .star:hover {
-        color: #FFD700;
-    }
-    
-    .star.filled {
-        color: #FFD700;
-    }
-    
-    /* Destaca a estrela e todas as anteriores no hover */
-    .star:hover ~ .star {
-        color: #ddd;
-    }
-    
-    /* Quando passa o mouse sobre uma estrela, destaca ela e todas as anteriores */
-    #stars-container .star:nth-child(1):hover ~ .star:nth-child(n+2),
-    #stars-container .star:nth-child(2):hover ~ .star:nth-child(n+3),
-    #stars-container .star:nth-child(3):hover ~ .star:nth-child(n+4),
-    #stars-container .star:nth-child(4):hover ~ .star:nth-child(n+5),
-    #stars-container .star:nth-child(5):hover {
-        color: #ddd;
-    }
-    
-    .rating-display .star {
-        color: #FFD700;
-        cursor: default;
-    }
+    .star:hover { color: #FFD700; }
+    .star.filled { color: #FFD700; }
+    .rating-display .star { color: #FFD700; cursor: default; }
 </style>
 
 <!-- Configuração do Layout da Navbar -->
@@ -57,29 +33,17 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
                 {% if request.user.is_authenticated %}
-                    <li>
-                        <span class="nav-link">Logado como <strong>{{ user.username }}</strong></span>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'listar_receitas' %}">Minhas Receitas</a>
-                    </li>
-                    <li>
-                        <a class="nav-link" href="{% url 'logout' %}">Logout</a>
-                    </li>
+                    <li><span class="nav-link">Logado como <strong>{{ user.username }}</strong></span></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'listar_receitas' %}">Minhas Receitas</a></li>
+                    <li><a class="nav-link" href="{% url 'logout' %}">Logout</a></li>
                 {% else %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'paginaLogin' %}">Login</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'registrarUser' %}">Registrar</a>
-                    </li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'paginaLogin' %}">Login</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'registrarUser' %}">Registrar</a></li>
                 {% endif %}
             </ul>
         </div>
     </div>
 </nav>
-
-
 
 <div class="container mt-4">
 
@@ -89,11 +53,17 @@
             <h1 class="card-title">{{ receita.titulo }}</h1>
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <div>
-                    <p class="mb-0"><strong>Autor:</strong> {{ receita.user.username }} | <strong>Publicada em:</strong> {{ receita.criada_em|date:"d/m/Y H:i" }}</p>
+                    <p class="mb-0"><strong>Autor:</strong> {{ receita.user.username }} | 
+                        <strong>Publicada em:</strong> {{ receita.criada_em|date:"d/m/Y H:i" }}
+                    </p>
                 </div>
                 {% if user.is_authenticated and user != receita.user %}
                     <div>
-                        <button id="seguir-btn" class="btn btn-outline-primary btn-sm" data-user-id="{{ receita.user.id }}" data-username="{{ receita.user.username }}" onclick="toggleSeguir(this)">
+                        <button id="seguir-btn" 
+                                class="btn btn-secondary btn-sm fw-bold text-white" 
+                                data-user-id="{{ receita.user.id }}" 
+                                data-username="{{ receita.user.username }}" 
+                                onclick="toggleSeguir(this)">
                             <span id="seguir-texto">Seguir</span>
                         </button>
                     </div>
@@ -150,12 +120,19 @@
             {% if user.is_authenticated %}
                 <a href="{% url 'fazer_comentario' receita.id %}" class="btn btn-custom mb-3">Comentar nesta receita</a>
             {% else %}
-                <p><strong>Quer comentar?</strong> <a href="{% url 'paginaLogin' %}?next={{ request.get_full_path }}">Faça login</a> ou <a href="{% url 'registrarUser' %}?next={{ request.get_full_path }}">registre-se</a> para participar da conversa!</p>
+                <p><strong>Quer comentar?</strong> 
+                    <a href="{% url 'paginaLogin' %}?next={{ request.get_full_path }}">Faça login</a> ou 
+                    <a href="{% url 'registrarUser' %}?next={{ request.get_full_path }}">registre-se</a> para participar da conversa!
+                </p>
             {% endif %}
 
             {% for comentario in comentarios %}
                 <div class="border p-2 mb-2 rounded">
-                    <div><strong>{{ comentario.usuario.username }}</strong> - {{ comentario.criado_em|date:"d/m/Y H:i" }} {% if comentario.atualizado_em != comentario.criado_em %}<em>(editado em {{ comentario.atualizado_em|date:"d/m/Y H:i" }})</em>{% endif %}</div>
+                    <div><strong>{{ comentario.usuario.username }}</strong> - {{ comentario.criado_em|date:"d/m/Y H:i" }} 
+                        {% if comentario.atualizado_em != comentario.criado_em %}
+                            <em>(editado em {{ comentario.atualizado_em|date:"d/m/Y H:i" }})</em>
+                        {% endif %}
+                    </div>
                     <div>{{ comentario.texto }}</div>
                 </div>
             {% empty %}
@@ -184,197 +161,48 @@
     }
     
     const csrftoken = getCookie('csrftoken');
-    
-    // Variável para controlar se o usuário já avaliou
-    let userRating = null;
     let isFollowing = false;
-    
-    // Função para verificar se já está seguindo o autor
+
     function verificarSeguindo() {
-        // Por enquanto, vamos assumir que não está seguindo
-        // Em uma implementação mais robusta, poderia fazer uma consulta AJAX
         atualizarBotaoSeguir(false);
     }
-    
-    // Função para atualizar o botão de seguir
+
     function atualizarBotaoSeguir(seguindo) {
         const btn = document.getElementById('seguir-btn');
         const texto = document.getElementById('seguir-texto');
-        
         if (btn && texto) {
             isFollowing = seguindo;
             if (seguindo) {
-                btn.className = 'btn btn-secondary btn-sm';
+                btn.className = 'btn btn-warning btn-sm fw-bold text-dark';
                 texto.textContent = 'Seguindo';
             } else {
-                btn.className = 'btn btn-outline-primary btn-sm';
+                btn.className = 'btn btn-secondary btn-sm fw-bold text-white';
                 texto.textContent = 'Seguir';
             }
         }
     }
-    
-    // Função para seguir/parar de seguir
+
     function toggleSeguir(button) {
         const userId = button.getAttribute('data-user-id');
-        const username = button.getAttribute('data-username');
         const url = isFollowing ? `/receitas/api/parar-seguir/${userId}/` : `/receitas/api/seguir/${userId}/`;
-        
         fetch(url, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrftoken
-            }
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken }
         })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
                 atualizarBotaoSeguir(data.action === 'seguindo');
-                // Mostrar mensagem de sucesso (opcional)
-                console.log(data.message);
             } else {
                 console.error('Erro:', data.error);
             }
         })
-        .catch(error => {
-            console.error('Erro ao seguir/parar de seguir:', error);
-        });
+        .catch(error => console.error('Erro ao seguir/parar de seguir:', error));
     }
-    
-    // Função para carregar a avaliação atual do usuário
-    function carregarAvaliacaoUsuario() {
-        fetch(`/receitas/api/avaliacoes/{{ receita.id }}/`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success && data.user_avaliacao && data.user_avaliacao.nota) {
-                userRating = data.user_avaliacao.nota;
-                destacarEstrelas(userRating);
-                document.getElementById('avaliacao-message').innerHTML = 
-                    `<span class="text-success">Você avaliou com ${userRating} estrela${userRating > 1 ? 's' : ''}</span>`;
-            }
-        })
-        .catch(error => {
-            console.error('Erro ao carregar avaliação:', error);
-        });
-    }
-    
-    // Função para destacar estrelas até uma determinada posição
-    function destacarEstrelas(rating) {
-        const stars = document.querySelectorAll('.star');
-        stars.forEach((star, index) => {
-            star.classList.remove('filled');
-            if (index < rating) {
-                star.classList.add('filled');
-            }
-        });
-    }
-    
-    // Função para mostrar preview do hover
-    function mostrarPreview(rating) {
-        if (userRating === null) {  // Só mostrar preview se ainda não avaliou
-            destacarEstrelas(rating);
-        }
-    }
-    
-    // Função para resetar para avaliação atual
-    function resetarEstrelas() {
-        if (userRating !== null) {
-            destacarEstrelas(userRating);
-        } else {
-            destacarEstrelas(0);
-        }
-    }
-    
-    // Função para avaliar receita
-    function avaliarReceita(nota) {
-        const messageDiv = document.getElementById('avaliacao-message');
-        
-        // Mostrar loading
-        messageDiv.innerHTML = '<span class="text-info">Enviando avaliação...</span>';
-        
-        fetch(`/receitas/api/avaliacao/criar/{{ receita.id }}/`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrftoken
-            },
-            body: JSON.stringify({nota: nota})
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                userRating = nota;
-                destacarEstrelas(nota);
-                
-                const action = data.avaliacao.created ? 'enviada' : 'atualizada';
-                messageDiv.innerHTML = `<span class="text-success">Avaliação ${action} com sucesso! (${nota} estrela${nota > 1 ? 's' : ''})</span>`;
-                
-                // Atualizar estatísticas da receita na página
-                const mediaElement = document.querySelector('strong');
-                if (mediaElement && mediaElement.textContent.includes('★')) {
-                    mediaElement.innerHTML = `★ ${data.receita_stats.media_avaliacoes}/5`;
-                }
-                
-                // Atualizar contador de avaliações
-                const avaliacaoText = document.querySelector('p strong');
-                if (avaliacaoText && avaliacaoText.parentElement.textContent.includes('avaliação')) {
-                    const plural = data.receita_stats.total_avaliacoes > 1 ? 'ões' : '';
-                    avaliacaoText.parentElement.innerHTML = `<strong>★ ${data.receita_stats.media_avaliacoes}/5</strong> (${data.receita_stats.total_avaliacoes} avaliação${plural})`;
-                }
-                
-            } else {
-                messageDiv.innerHTML = `<span class="text-danger">Erro: ${data.error}</span>`;
-            }
-        })
-        .catch(error => {
-            console.error('Erro:', error);
-            messageDiv.innerHTML = '<span class="text-danger">Erro ao enviar avaliação</span>';
-        });
-    }
-    
-    // Configurar eventos das estrelas
-    document.addEventListener('DOMContentLoaded', function() {
-        const stars = document.querySelectorAll('.star');
-        const starsContainer = document.getElementById('stars-container');
-        
-        // Adicionar eventos para cada estrela
-        stars.forEach((star, index) => {
-            const rating = index + 1;
-            
-            // Evento de hover
-            star.addEventListener('mouseenter', function() {
-                mostrarPreview(rating);
-            });
-            
-            // Evento de click
-            star.addEventListener('click', function() {
-                avaliarReceita(rating);
-            });
-        });
-        
-        // Evento para quando o mouse sai do container de estrelas
-        if (starsContainer) {
-            starsContainer.addEventListener('mouseleave', function() {
-                resetarEstrelas();
-            });
-        }
-        
-        // Carregar avaliação atual do usuário ao carregar a página
-        carregarAvaliacaoUsuario();
-    });
-</script>
 
-{% if user.is_authenticated and user != receita.user %}
-<script>
-    // Inicializar o estado do botão de seguir quando a página carregar
     document.addEventListener('DOMContentLoaded', function() {
         verificarSeguindo();
     });
 </script>
-{% endif %}
+
 {% endblock content %}
