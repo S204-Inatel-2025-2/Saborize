@@ -77,3 +77,26 @@ class Avaliacao(models.Model):
 
     def __str__(self):
         return f"{self.usuario.username} avaliou {self.receita.titulo} com {self.nota} estrelas"
+
+
+class Seguidor(models.Model):
+    """
+    Modelo para representar o relacionamento de seguir entre usuários
+    """
+    seguidor = models.ForeignKey(User, on_delete=models.CASCADE, related_name='seguindo')
+    seguido = models.ForeignKey(User, on_delete=models.CASCADE, related_name='seguidores')
+    criado_em = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('seguidor', 'seguido')  # Um usuário só pode seguir outro uma vez
+        ordering = ['-criado_em']
+        verbose_name = 'Seguidor'
+        verbose_name_plural = 'Seguidores'
+
+    def __str__(self):
+        return f"{self.seguidor.username} segue {self.seguido.username}"
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        if self.seguidor == self.seguido:
+            raise ValidationError("Um usuário não pode seguir a si mesmo")

@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+
+{% block title %}Feed dos Seguidos - Saborize{% endblock title %}
+
+{% block content %}
+<!-- Configuração do Layout da Navbar -->
+<nav class="navbar navbar-expand-lg navbar-custom">
+    <div class="container d-flex align-items-center">
+        <a href="javascript:history.back()" class="me-3 text-decoration-none text-light">
+            <i class="bi bi-arrow-left fs-4"></i>
+        </a>
+        <a class="navbar-brand" href="{% url 'feed_receitas' %}">SABORIZE</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                {% if request.user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'listar_receitas' %}">Minhas Receitas</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'listar_usuarios' %}">Descobrir Usuários</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1>Feed dos Seguidos</h1>
+            <p>Receitas de {{ total_seguindo }} pessoa{{ total_seguindo|pluralize:"s" }} que você segue</p>
+            
+            {% if total_seguindo == 0 %}
+                <div class="alert alert-info">
+                    <h4>Você ainda não segue ninguém!</h4>
+                    <p>Para ver receitas aqui, você precisa seguir outros usuários.</p>
+                    <a href="{% url 'listar_usuarios' %}" class="btn btn-primary">Descobrir Usuários</a>
+                </div>
+            {% elif receitas %}
+                <div class="row">
+                    {% for receita in receitas %}
+                        <div class="col-md-6 col-lg-4 mb-4">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <a href="{% url 'ver_receita_feed' receita.id %}" class="text-decoration-none">
+                                            {{ receita.titulo }}
+                                        </a>
+                                    </h5>
+                                    <p class="card-text">
+                                        <strong>Por:</strong> {{ receita.user.username }}<br>
+                                        <strong>Publicada em:</strong> {{ receita.criada_em|date:"d/m/Y H:i" }}
+                                    </p>
+                                    <p class="card-text">{{ receita.descricao|truncatewords:20 }}</p>
+                                    
+                                    <div class="mb-2">
+                                        {% if receita.total_avaliacoes > 0 %}
+                                            <span>★ {{ receita.media_avaliacoes }}/5</span>
+                                            <span>({{ receita.total_avaliacoes }} avaliação{{ receita.total_avaliacoes|pluralize:"ões" }})</span>
+                                        {% else %}
+                                            <span>Sem avaliações</span>
+                                        {% endif %}
+                                        <span> | {{ receita.total_comentarios }} comentário{{ receita.total_comentarios|pluralize:"s" }}</span>
+                                    </div>
+                                    
+                                    <div class="d-flex gap-2">
+                                        <a href="{% url 'ver_receita_feed' receita.id %}" class="btn btn-primary btn-sm">Ver Receita</a>
+                                        <a href="{% url 'fazer_comentario' receita.id %}" class="btn btn-secondary btn-sm">Comentar</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="alert alert-warning">
+                    <h4>Nenhuma receita encontrada</h4>
+                    <p>As pessoas que você segue ainda não publicaram receitas, ou elas estão privadas.</p>
+                    <div>
+                        <a href="{% url 'feed_receitas' %}" class="btn btn-secondary">Ver Feed Público</a>
+                        <a href="{% url 'listar_usuarios' %}" class="btn btn-primary">Seguir Mais Pessoas</a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock content %}

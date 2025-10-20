@@ -17,6 +17,8 @@
                 {% if user.is_authenticated %}
                     <li class="nav-item"><a class="nav-link" href="{% url 'listar_receitas' %}">Minhas Receitas</a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'criar_receita' %}">Criar Receita</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'feed_seguidos' %}">Feed dos Seguidos</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'listar_usuarios' %}">Descobrir Usuários</a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'logout' %}">Logout</a></li>
                 {% else %}
                     <li class="nav-item"><a class="nav-link" href="{% url 'paginaLogin' %}">Login</a></li>

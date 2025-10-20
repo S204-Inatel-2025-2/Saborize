@@ -10,7 +10,7 @@ from django.template.context_processors import csrf
 import json
 
 from .forms import ReceitaForm as CriarReceita
-from .models import Receita, Comentario, Avaliacao
+from .models import Receita, Comentario, Avaliacao, Seguidor
 from autenticacao.models import User
 
 
@@ -29,13 +29,61 @@ def criar_receita(request):
 
 
 @login_required
+def editar_receita(request, receita_id):
+    """
+    View para editar uma receita (apenas o próprio autor pode editar)
+    """
+    receita = get_object_or_404(Receita, id=receita_id, user=request.user)
+    
+    if request.method == 'POST':
+        form = CriarReceita(request.POST, instance=receita)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Receita atualizada com sucesso!')
+            return redirect('listar_receitas')
+    else:
+        form = CriarReceita(instance=receita)
+    
+    context = {
+        'form': form,
+        'receita': receita,
+        'editing': True
+    }
+    return render(request, 'receitas/criar_receita.html', context)
+
+
+@login_required
+@require_http_methods(["POST"])
+def deletar_receita(request, receita_id):
+    """
+    View para deletar uma receita (apenas o próprio autor pode deletar)
+    """
+    receita = get_object_or_404(Receita, id=receita_id, user=request.user)
+    
+    titulo = receita.titulo
+    receita.delete()
+    
+    messages.success(request, f'Receita "{titulo}" foi deletada com sucesso!')
+    return redirect('listar_receitas')
+
+
+@login_required
+def confirmar_deletar_receita(request, receita_id):
+    """
+    View para mostrar página de confirmação antes de deletar
+    """
+    receita = get_object_or_404(Receita, id=receita_id, user=request.user)
+    return render(request, 'receitas/confirmar_deletar.html', {'receita': receita})
+
+
+@login_required
 def listar_receitas(request):
-    receitas = Receita.objects.filter(user=request.user)
+    receitas = Receita.objects.filter(user=request.user).prefetch_related('avaliacoes__usuario', 'comentarios').order_by('-criada_em')
     return render(request, 'receitas/listar_receitas.html', {'receitas': receitas})
 
 
 def ver_receita(request, receita_id):
-    receita = get_object_or_404(Receita, id=receita_id)
+    receita = get_object_or_404(Receita.objects.prefetch_related('avaliacoes__usuario', 'comentarios'), id=receita_id)
     comentarios = receita.comentarios.all()
     
     context = {
@@ -456,9 +504,12 @@ def avaliar_receita(request, receita_id):
             'error': 'Dados JSON inválidos'
         }, status=400)
     except Exception as e:
+        import traceback
+        print(f"Erro ao avaliar receita: {str(e)}")
+        print(f"Traceback: {traceback.format_exc()}")
         return JsonResponse({
             'success': False,
-            'error': 'Erro interno do servidor'
+            'error': f'Erro interno do servidor: {str(e)}'
         }, status=500)
 
 
@@ -505,9 +556,12 @@ def listar_avaliacoes(request, receita_id):
         })
         
     except Exception as e:
+        import traceback
+        print(f"Erro ao listar avaliações: {str(e)}")
+        print(f"Traceback: {traceback.format_exc()}")
         return JsonResponse({
             'success': False,
-            'error': 'Erro interno do servidor'
+            'error': f'Erro interno do servidor: {str(e)}'
         }, status=500)
 
 
@@ -544,3 +598,149 @@ def remover_avaliacao(request, receita_id):
             'success': False,
             'error': 'Erro interno do servidor'
         }, status=500)
+
+
+# =============================================================================
+# SISTEMA DE SEGUIR USUÁRIOS
+# =============================================================================
+
+@login_required
+@require_http_methods(["POST"])
+def seguir_usuario(request, user_id):
+    """
+    API para seguir um usuário
+    """
+    try:
+        usuario_a_seguir = get_object_or_404(User, id=user_id)
+        
+        # Não permitir seguir a si mesmo
+        if usuario_a_seguir == request.user:
+            return JsonResponse({
+                'success': False,
+                'error': 'Você não pode seguir a si mesmo'
+            }, status=400)
+        
+        # Criar ou verificar se já segue
+        seguidor, created = Seguidor.objects.get_or_create(
+            seguidor=request.user,
+            seguido=usuario_a_seguir
+        )
+        
+        if created:
+            return JsonResponse({
+                'success': True,
+                'message': f'Você agora está seguindo {usuario_a_seguir.username}!',
+                'action': 'seguindo'
+            })
+        else:
+            return JsonResponse({
+                'success': False,
+                'error': f'Você já está seguindo {usuario_a_seguir.username}'
+            }, status=400)
+            
+    except Exception as e:
+        import traceback
+        print(f"Erro ao seguir usuário: {str(e)}")
+        print(f"Traceback: {traceback.format_exc()}")
+        return JsonResponse({
+            'success': False,
+            'error': f'Erro interno do servidor: {str(e)}'
+        }, status=500)
+
+
+@login_required
+@require_http_methods(["POST"])
+def parar_de_seguir(request, user_id):
+    """
+    API para parar de seguir um usuário
+    """
+    try:
+        usuario_seguido = get_object_or_404(User, id=user_id)
+        
+        try:
+            seguidor = Seguidor.objects.get(
+                seguidor=request.user,
+                seguido=usuario_seguido
+            )
+            seguidor.delete()
+            
+            return JsonResponse({
+                'success': True,
+                'message': f'Você parou de seguir {usuario_seguido.username}',
+                'action': 'nao_seguindo'
+            })
+            
+        except Seguidor.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'error': f'Você não está seguindo {usuario_seguido.username}'
+            }, status=404)
+        
+    except Exception as e:
+        import traceback
+        print(f"Erro ao parar de seguir usuário: {str(e)}")
+        print(f"Traceback: {traceback.format_exc()}")
+        return JsonResponse({
+            'success': False,
+            'error': f'Erro interno do servidor: {str(e)}'
+        }, status=500)
+
+
+@login_required
+def feed_seguidos(request):
+    """
+    Feed de receitas apenas dos usuários que o usuário atual segue
+    """
+    # Buscar IDs dos usuários que o usuário atual segue
+    usuarios_seguidos_ids = Seguidor.objects.filter(
+        seguidor=request.user
+    ).values_list('seguido_id', flat=True)
+    
+    # Buscar receitas públicas apenas dos usuários seguidos
+    receitas = Receita.objects.filter(
+        user_id__in=usuarios_seguidos_ids,
+        publica=True
+    ).select_related('user').prefetch_related(
+        'avaliacoes', 'comentarios'
+    ).order_by('-criada_em')
+    
+    # Buscar informações dos usuários seguidos para o template
+    usuarios_seguidos = User.objects.filter(id__in=usuarios_seguidos_ids)
+    
+    context = {
+        'receitas': receitas,
+        'usuarios_seguidos': usuarios_seguidos,
+        'total_seguindo': len(usuarios_seguidos_ids)
+    }
+    
+    return render(request, 'receitas/feed_seguidos.html', context)
+
+
+@login_required  
+def listar_usuarios(request):
+    """
+    Lista todos os usuários para poder seguir
+    """
+    from django.db import models
+    
+    # Buscar usuários que o usuário atual já segue
+    usuarios_seguindo_ids = Seguidor.objects.filter(
+        seguidor=request.user
+    ).values_list('seguido_id', flat=True)
+    
+    # Buscar todos os usuários exceto o próprio usuário
+    usuarios = User.objects.exclude(id=request.user.id).annotate(
+        total_receitas=models.Count('receitas', filter=models.Q(receitas__publica=True)),
+        total_seguidores=models.Count('seguidores')
+    ).order_by('-total_receitas')
+    
+    # Adicionar informação se já está seguindo cada usuário
+    for usuario in usuarios:
+        usuario.ja_seguindo = usuario.id in usuarios_seguindo_ids
+    
+    context = {
+        'usuarios': usuarios,
+        'total_seguindo': len(usuarios_seguindo_ids)
+    }
+    
+    return render(request, 'receitas/listar_usuarios.html', context)
