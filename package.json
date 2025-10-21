@@ -21,6 +21,7 @@
   "homepage": "https://github.com/S204-Inatel-2025-2/Saborize#readme",
   "devDependencies": {
     "cypress": "^15.1.0",
-    "cypress-mochawesome-reporter": "^4.0.2"
+    "cypress-mochawesome-reporter": "^4.0.2",
+    "gremlins.js": "^2.2.0"
   }
 }
