@@ -8,6 +8,8 @@ from django.core.paginator import Paginator
 from django.db.models import Q, Avg
 from django.template.context_processors import csrf
 import json
+import openai
+import os
 
 from .forms import ReceitaForm as CriarReceita
 from .models import Receita, Comentario, Avaliacao, Seguidor
@@ -744,3 +746,122 @@ def listar_usuarios(request):
     }
     
     return render(request, 'receitas/listar_usuarios.html', context)
+
+
+# =============================================================================
+# GERAÇÃO DE RECEITAS COM IA (OpenAI)
+# =============================================================================
+
+@login_required
+def gerar_receita_ia(request):
+    """
+    Página para gerar receitas automaticamente usando OpenAI
+    """
+    receita_gerada = None
+    erro = None
+    
+    if request.method == 'POST':
+        try:
+            # Configurar a chave da API (você precisará definir isso nas configurações)
+            # Por segurança, a chave deve estar em uma variável de ambiente
+            openai.api_key = os.getenv('OPENAI_API_KEY', 'sua-chave-aqui')
+            
+            # Obter parâmetros do formulário
+            ingredientes = request.POST.get('ingredientes', '').strip()
+            tipo_cozinha = request.POST.get('tipo_cozinha', 'qualquer').strip()
+            dificuldade = request.POST.get('dificuldade', 'média').strip()
+            tempo = request.POST.get('tempo', '30 minutos').strip()
+            restricoes = request.POST.get('restricoes', '').strip()
+            
+            if not ingredientes:
+                erro = "Por favor, informe pelo menos alguns ingredientes."
+            else:
+                # Construir o prompt para a IA
+                prompt = f"""
+Crie uma receita culinária detalhada com base nas seguintes informações:
+
+Ingredientes disponíveis: {ingredientes}
+Tipo de cozinha: {tipo_cozinha}
+Dificuldade: {dificuldade}
+Tempo máximo: {tempo}
+Restrições alimentares: {restricoes if restricoes else 'Nenhuma'}
+
+Por favor, forneça:
+1. Nome da receita
+2. Descrição breve
+3. Lista completa de ingredientes com quantidades
+4. Modo de preparo passo a passo
+5. Tempo total de preparo
+6. Rendimento (quantas porções)
+
+Formato a resposta de maneira clara e organizada.
+"""
+
+                # Fazer a chamada para a API da OpenAI
+                try:
+                    response = openai.chat.completions.create(
+                        model="gpt-3.5-turbo",
+                        messages=[
+                            {"role": "system", "content": "Você é um chef experiente que cria receitas deliciosas e detalhadas."},
+                            {"role": "user", "content": prompt}
+                        ],
+                        max_tokens=1000,
+                        temperature=0.7
+                    )
+                    
+                    receita_gerada = response.choices[0].message.content
+                    
+                except Exception as api_error:
+                    if "API key" in str(api_error):
+                        erro = "Chave da API OpenAI não configurada. Configure a variável de ambiente OPENAI_API_KEY."
+                    else:
+                        erro = f"Erro na API da OpenAI: {str(api_error)}"
+                        
+        except Exception as e:
+            erro = f"Erro interno: {str(e)}"
+    
+    context = {
+        'receita_gerada': receita_gerada,
+        'erro': erro,
+        'ingredientes': request.POST.get('ingredientes', '') if request.method == 'POST' else '',
+        'tipo_cozinha': request.POST.get('tipo_cozinha', 'qualquer') if request.method == 'POST' else 'qualquer',
+        'dificuldade': request.POST.get('dificuldade', 'média') if request.method == 'POST' else 'média',
+        'tempo': request.POST.get('tempo', '30 minutos') if request.method == 'POST' else '30 minutos',
+        'restricoes': request.POST.get('restricoes', '') if request.method == 'POST' else '',
+    }
+    
+    return render(request, 'receitas/gerar_receita_ia.html', context)
+
+
+@login_required
+@require_http_methods(["POST"])
+def salvar_receita_ia(request):
+    """
+    Salva uma receita gerada pela IA como uma receita normal do usuário
+    """
+    try:
+        titulo = request.POST.get('titulo', '').strip()
+        descricao = request.POST.get('descricao', '').strip()
+        ingredientes = request.POST.get('ingredientes', '').strip()
+        passos = request.POST.get('passos', '').strip()
+        
+        if not all([titulo, descricao, ingredientes, passos]):
+            messages.error(request, 'Todos os campos são obrigatórios.')
+            return redirect('gerar_receita_ia')
+        
+        # Criar a receita
+        receita = Receita.objects.create(
+            user=request.user,
+            titulo=titulo,
+            descricao=descricao,
+            ingredientes=ingredientes,
+            passos=passos,
+            publica=True  # Por padrão, receitas geradas por IA são públicas
+        )
+        
+        messages.success(request, f'Receita "{titulo}" salva com sucesso!')
+        return redirect('ver_receita', receita_id=receita.id)
+        
+    except Exception as e:
+        messages.error(request, f'Erro ao salvar receita: {str(e)}')
+        return redirect('gerar_receita_ia')

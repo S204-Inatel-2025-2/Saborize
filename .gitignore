@@ -4,6 +4,9 @@ __pycache__/
 *.pyd
 .Python
 env/
+venv/
+.venv/
+backendenv/
 pip-log.txt
 pip-delete-this-directory.txt
 .tox

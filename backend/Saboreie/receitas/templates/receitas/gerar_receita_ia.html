@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+
+{% block title %}Gerar Receita com IA - Saborize{% endblock title %}
+
+{% block content %}
+<h1>Gerar Receita com Inteligência Artificial</h1>
+<p>Use a IA para criar receitas personalizadas com base nos seus ingredientes e preferências!</p>
+
+<!-- Mensagens do Django -->
+{% if messages %}
+    {% for message in messages %}
+        <div>{{ message }}</div>
+    {% endfor %}
+{% endif %}
+
+<h3>Configurar Receita</h3>
+<form method="post">
+    {% csrf_token %}
+    
+    <div>
+        <label for="ingredientes">Ingredientes Disponíveis *</label>
+        <textarea name="ingredientes" id="ingredientes" rows="4" required>{{ ingredientes }}</textarea>
+        <small>Liste os ingredientes que você tem disponível</small>
+    </div>
+    
+    <div>
+        <label for="tipo_cozinha">Tipo de Cozinha</label>
+        <select name="tipo_cozinha" id="tipo_cozinha">
+            <option value="qualquer" {% if tipo_cozinha == 'qualquer' %}selected{% endif %}>Qualquer</option>
+            <option value="brasileira" {% if tipo_cozinha == 'brasileira' %}selected{% endif %}>Brasileira</option>
+            <option value="italiana" {% if tipo_cozinha == 'italiana' %}selected{% endif %}>Italiana</option>
+            <option value="japonesa" {% if tipo_cozinha == 'japonesa' %}selected{% endif %}>Japonesa</option>
+            <option value="mexicana" {% if tipo_cozinha == 'mexicana' %}selected{% endif %}>Mexicana</option>
+            <option value="francesa" {% if tipo_cozinha == 'francesa' %}selected{% endif %}>Francesa</option>
+            <option value="indiana" {% if tipo_cozinha == 'indiana' %}selected{% endif %}>Indiana</option>
+            <option value="chinesa" {% if tipo_cozinha == 'chinesa' %}selected{% endif %}>Chinesa</option>
+        </select>
+    </div>
+    
+    <div>
+        <label for="dificuldade">Dificuldade</label>
+        <select name="dificuldade" id="dificuldade">
+            <option value="fácil" {% if dificuldade == 'fácil' %}selected{% endif %}>Fácil</option>
+            <option value="média" {% if dificuldade == 'média' %}selected{% endif %}>Média</option>
+            <option value="difícil" {% if dificuldade == 'difícil' %}selected{% endif %}>Difícil</option>
+        </select>
+    </div>
+    
+    <div>
+        <label for="tempo">Tempo Máximo</label>
+        <select name="tempo" id="tempo">
+            <option value="15 minutos" {% if tempo == '15 minutos' %}selected{% endif %}>15 minutos</option>
+            <option value="30 minutos" {% if tempo == '30 minutos' %}selected{% endif %}>30 minutos</option>
+            <option value="1 hora" {% if tempo == '1 hora' %}selected{% endif %}>1 hora</option>
+            <option value="2 horas" {% if tempo == '2 horas' %}selected{% endif %}>2 horas</option>
+            <option value="sem limite" {% if tempo == 'sem limite' %}selected{% endif %}>Sem limite</option>
+        </select>
+    </div>
+    
+    <div>
+        <label for="restricoes">Restrições Alimentares</label>
+        <textarea name="restricoes" id="restricoes" rows="2">{{ restricoes }}</textarea>
+        <small>Opcional: especifique restrições alimentares</small>
+    </div>
+    
+    <button type="submit">Gerar Receita com IA</button>
+</form>
+
+<h3>Receita Gerada</h3>
+
+{% if erro %}
+    <div>
+        <strong>Erro:</strong> {{ erro }}
+        {% if "API key" in erro %}
+            <br><small>Para usar esta funcionalidade, é necessário configurar uma chave da API OpenAI.</small>
+        {% endif %}
+    </div>
+{% endif %}
+
+{% if receita_gerada %}
+    <div>
+        <pre>{{ receita_gerada }}</pre>
+        
+        <h5>Salvar esta receita?</h5>
+        <form method="post" action="{% url 'salvar_receita_ia' %}">
+            {% csrf_token %}
+            
+            <div>
+                <label for="titulo">Título da Receita</label>
+                <input type="text" name="titulo" id="titulo" required>
+            </div>
+            
+            <div>
+                <label for="descricao">Descrição</label>
+                <textarea name="descricao" id="descricao" rows="3" required></textarea>
+            </div>
+            
+            <div>
+                <label for="ingredientes_salvar">Ingredientes</label>
+                <textarea name="ingredientes" id="ingredientes_salvar" rows="5" required></textarea>
+            </div>
+            
+            <div>
+                <label for="passos">Modo de Preparo</label>
+                <textarea name="passos" id="passos" rows="6" required></textarea>
+            </div>
+            
+            <button type="submit">Salvar Receita</button>
+        </form>
+    </div>
+{% else %}
+    <div>
+        Preencha os campos acima e clique em "Gerar Receita com IA" para ver uma receita personalizada aqui.
+    </div>
+{% endif %}
+
+<h4>Como funciona?</h4>
+<ul>
+    <li><strong>Ingredientes:</strong> Informe os ingredientes que você tem disponível</li>
+    <li><strong>Preferências:</strong> Escolha o tipo de cozinha, dificuldade e tempo</li>
+    <li><strong>IA Gera:</strong> Nossa IA criará uma receita personalizada para você</li>
+    <li><strong>Salvar:</strong> Se gostar, você pode salvar a receita em sua conta</li>
+</ul>
+
+<div>
+    <strong>Importante:</strong> Esta funcionalidade requer uma chave da API OpenAI configurada. 
+    As receitas são geradas por inteligência artificial e devem ser revisadas antes do preparo.
+</div>
+{% endblock content %}

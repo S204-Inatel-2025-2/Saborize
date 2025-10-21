@@ -36,4 +36,8 @@ urlpatterns = [
     path('seguidos/', views.feed_seguidos, name='feed_seguidos'),
     path('api/seguir/<int:user_id>/', views.seguir_usuario, name='seguir_usuario'),
     path('api/parar-seguir/<int:user_id>/', views.parar_de_seguir, name='parar_de_seguir'),
+    
+    # Geração de receitas com IA (requer login)
+    path('gerar-ia/', views.gerar_receita_ia, name='gerar_receita_ia'),
+    path('salvar-ia/', views.salvar_receita_ia, name='salvar_receita_ia'),
 ]
