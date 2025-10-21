@@ -151,6 +151,7 @@ saboreie/
 
 - 🧠 **Integração com API de Inteligência Artificial para criação automática de receitas**
 - 📸 **Upload de fotos na criação de receitas**
+- 👤 **Customização de perfil**
 - 🏷️ **Incluir tags para categorização das receitas**
 - 🔔 **Implementar o sistema de notificação das interações entre os usuários** 
 - 🦾 **Realizar os testes das novas funcionalidades implementadas** 
