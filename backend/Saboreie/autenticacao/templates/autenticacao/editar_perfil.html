@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+
+{% block title %}Editar Perfil{% endblock %}
+
+{% block content %}
+<!-- Navbar -->
+<nav>
+    <div>
+        <a href="{% url 'home' %}">Saborize</a>
+        <ul>
+            {% if user.is_authenticated %}
+                <li><a href="{% url 'feed_receitas' %}">Feed</a></li>
+                <li><a href="{% url 'criar_receita' %}">Criar Receita</a></li>
+                <li><a href="{% url 'perfil' %}">Meu Perfil</a></li>
+                <li><a href="{% url 'logout' %}">Sair</a></li>
+            {% else %}
+                <li><a href="{% url 'paginaLogin' %}">Login</a></li>
+                <li><a href="{% url 'registrarUser' %}">Registrar</a></li>
+            {% endif %}
+        </ul>
+    </div>
+</nav>
+
+<div>
+    <div>
+        <div>
+            <h4>Editar Perfil</h4>
+            
+            <!-- Mensagens -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div>{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <!-- Foto de perfil atual -->
+                <div>
+                    <h6>Foto de Perfil Atual</h6>
+                    {% if user.foto_perfil %}
+                        <img src="{{ user.foto_perfil.url }}" alt="Foto atual">
+                    {% else %}
+                        <div>[Sem foto de perfil]</div>
+                    {% endif %}
+                </div>
+                
+                <!-- Informações pessoais -->
+                <div>
+                    <div>
+                        <label for="{{ form.first_name.id_for_label }}">{{ form.first_name.label }}</label>
+                        {{ form.first_name }}
+                        {% if form.first_name.errors %}
+                            <div>{{ form.first_name.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label for="{{ form.last_name.id_for_label }}">{{ form.last_name.label }}</label>
+                        {{ form.last_name }}
+                        {% if form.last_name.errors %}
+                            <div>{{ form.last_name.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div>
+                    <label for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
+                    {{ form.email }}
+                    {% if form.email.errors %}
+                        <div>{{ form.email.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                
+                <div>
+                    <label for="{{ form.bio.id_for_label }}">{{ form.bio.label }}</label>
+                    {{ form.bio }}
+                    <small>Conte um pouco sobre você (máximo 500 caracteres)</small>
+                    {% if form.bio.errors %}
+                        <div>{{ form.bio.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                
+                <!-- Contato -->
+                <div>
+                    <div>
+                        <label for="{{ form.telefone.id_for_label }}">{{ form.telefone.label }}</label>
+                        {{ form.telefone }}
+                        {% if form.telefone.errors %}
+                            <div>{{ form.telefone.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label for="{{ form.data_nascimento.id_for_label }}">{{ form.data_nascimento.label }}</label>
+                        {{ form.data_nascimento }}
+                        {% if form.data_nascimento.errors %}
+                            <div>{{ form.data_nascimento.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Localização -->
+                <div>
+                    <div>
+                        <label for="{{ form.cidade.id_for_label }}">{{ form.cidade.label }}</label>
+                        {{ form.cidade }}
+                        {% if form.cidade.errors %}
+                            <div>{{ form.cidade.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label for="{{ form.estado.id_for_label }}">{{ form.estado.label }}</label>
+                        {{ form.estado }}
+                        {% if form.estado.errors %}
+                            <div>{{ form.estado.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Nova foto de perfil -->
+                <div>
+                    <label for="{{ form.foto_perfil.id_for_label }}">{{ form.foto_perfil.label }}</label>
+                    {{ form.foto_perfil }}
+                    <small>Escolha uma nova imagem para seu perfil (opcional)</small>
+                    {% if form.foto_perfil.errors %}
+                        <div>{{ form.foto_perfil.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                
+                <!-- Tags favoritas -->
+                <div>
+                    <label>{{ form.tags_favoritas.label }}</label>
+                    <div>
+                        {% for tag in form.tags_favoritas %}
+                            <div>
+                                {{ tag.tag }}
+                                <label for="{{ tag.id_for_label }}">{{ tag.choice_label }}</label>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    {% if form.tags_favoritas.errors %}
+                        <div>{{ form.tags_favoritas.errors.0 }}</div>
+                    {% endif %}
+                    {% if not form.tags_favoritas %}
+                        <p>Nenhuma tag disponível. <a href="/admin/">Adicione tags no painel administrativo</a>.</p>
+                    {% endif %}
+                </div>
+                
+                <!-- Botões -->
+                <div>
+                    <a href="{% url 'perfil' %}">Cancelar</a>
+                    <button type="submit">Salvar Alterações</button>
+                </div>
+            </form>
+            
+            <!-- Dica sobre privacidade -->
+            <div>
+                <h6>Sobre sua privacidade</h6>
+                <small>
+                    Seu e-mail, telefone e data de nascimento são visíveis apenas para você.
+                    Outras informações como nome, biografia, localização e tags favoritas são públicas.
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

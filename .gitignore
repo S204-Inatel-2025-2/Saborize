@@ -30,3 +30,14 @@ _mailinglist
 .pytest_cache/
 *.db
 *.sqlite3
+
+# Relatórios de Teste
+cypress/reports/
+
+# Arquivos de Cache do Python
+__pycache__/
+*.pyc
+
+# Banco de Dados
+*.sqlite3
+db.sqlite3

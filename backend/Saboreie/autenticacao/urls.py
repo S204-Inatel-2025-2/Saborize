@@ -5,5 +5,8 @@ urlpatterns = [
     path('login/', views.paginaLogin, name="paginaLogin"),
     path('logout/', views.logoutUser, name="logout"),
     path('registrar/', views.registrarUser, name="registrarUser"),
+    path('perfil/', views.perfil, name="perfil"),
+    path('perfil/<str:username>/', views.perfil, name="perfil_usuario"),
+    path('editar-perfil/', views.editar_perfil, name="editar_perfil"),
     path('', views.home, name="home"),
 ]
