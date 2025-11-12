@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Receita, Comentario, Avaliacao
+from .models import Receita, Comentario, Avaliacao, Seguidor
 
 
 @admin.register(Receita)
@@ -49,6 +49,24 @@ class AvaliacaoAdmin(admin.ModelAdmin):
         }),
         ('Datas', {
             'fields': ('criada_em', 'atualizada_em'),
+            'classes': ('collapse',)
+        }),
+    )
+
+
+@admin.register(Seguidor)
+class SeguidorAdmin(admin.ModelAdmin):
+    list_display = ['seguidor', 'seguido', 'criado_em']
+    list_filter = ['criado_em']
+    search_fields = ['seguidor__username', 'seguido__username']
+    readonly_fields = ['criado_em']
+    
+    fieldsets = (
+        ('Relacionamento', {
+            'fields': ('seguidor', 'seguido')
+        }),
+        ('Data', {
+            'fields': ('criado_em',),
             'classes': ('collapse',)
         }),
     )

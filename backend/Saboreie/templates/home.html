@@ -16,6 +16,12 @@
                 <ul class="navbar-nav ms-auto">
                     {% if request.user.is_authenticated %}
                         <li class="nav-item">
+                            <a class="nav-link" href="{% url 'feed_receitas' %}">Feed</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'perfil' %}">Meu Perfil</a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link" href="{% url 'logout' %}">Logout</a>
                         </li>
                     {% else %}
@@ -54,6 +60,7 @@
                     <div class="d-flex flex-column gap-3">
                         <a href="{% url 'criar_receita' %}" class="btn btn-custom btn-lg">Criar Receita</a>
                         <a href="{% url 'listar_receitas' %}" class="btn btn-custom btn-lg">Minhas Receitas</a>
+                        <a href="{% url 'perfil' %}" class="btn btn-custom btn-lg">Meu Perfil</a>
                         <a href="{% url 'logout' %}" class="btn btn-custom btn-lg">Logout</a>
                     </div>
                 {% endif %}

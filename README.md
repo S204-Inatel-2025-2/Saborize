@@ -54,6 +54,7 @@ Cada usuário pode:
 - ❤️ **Curtir e comentar receitas**  
 - 👥 **Seguir outros usuários**  
 - 📰 **Feed personalizado com receitas de quem o usuário segue**  
+- 👤 **Sistema de perfil de usuário com tags de receitas favoritas**
 - 🤖 **Geração de receitas via IA** (Em desenvolvimento)
 
 ---
@@ -76,22 +77,27 @@ python -m venv venv
 source venv/bin/activate  # Linux/Mac
 venv\Scripts\activate     # Windows
 ```
+
 ### 🔹 2. Instalar Django
 ```
 pip install django
 ```
+
 ### 🔹 3. Instalar Bootstrap
 ```
 npm install bootstrap
 ```
+
 ### 🔹 4. Rodar o projeto Django
 ```
 python manage.py runserver
 ```
+
 ### 🔹 5. Instalar Cypress
 ```
 npm install cypress --save-dev
 ```
+
 ### 🔹 6. Rodar Cypress
 ```
 npx cypress open
@@ -144,14 +150,12 @@ saboreie/
 └── manage.py
 ```
 
-
 ---
 
 ## 🚀 Melhorias Futuras
 
 - 🧠 **Integração com API de Inteligência Artificial para criação automática de receitas**
 - 📸 **Upload de fotos na criação de receitas**
-- 👤 **Customização de perfil**
 - 🏷️ **Incluir tags para categorização das receitas**
 - 🔔 **Implementar o sistema de notificação das interações entre os usuários** 
 - 🦾 **Realizar os testes das novas funcionalidades implementadas** 

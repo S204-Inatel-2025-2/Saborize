@@ -4,6 +4,21 @@
 
 {% block content %}
 
+<style>
+    /* Estilos para o sistema de estrelas */
+    .star {
+        font-size: 2em;
+        color: #ddd;
+        cursor: pointer;
+        transition: color 0.2s;
+        user-select: none;
+        display: inline-block;
+    }
+    .star:hover { color: #FFD700; }
+    .star.filled { color: #FFD700; }
+    .rating-display .star { color: #FFD700; cursor: default; }
+</style>
+
 <!-- Configuração do Layout da Navbar -->
 <nav class="navbar navbar-expand-lg navbar-custom">
     <div class="container d-flex align-items-center">
@@ -18,29 +33,17 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
                 {% if request.user.is_authenticated %}
-                    <li>
-                        <span class="nav-link">Logado como <strong>{{ user.username }}</strong></span>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'listar_receitas' %}">Minhas Receitas</a>
-                    </li>
-                    <li>
-                        <a class="nav-link" href="{% url 'logout' %}">Logout</a>
-                    </li>
+                    <li><span class="nav-link">Logado como <strong>{{ user.username }}</strong></span></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'listar_receitas' %}">Minhas Receitas</a></li>
+                    <li><a class="nav-link" href="{% url 'logout' %}">Logout</a></li>
                 {% else %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'paginaLogin' %}">Login</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'registrarUser' %}">Registrar</a>
-                    </li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'paginaLogin' %}">Login</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'registrarUser' %}">Registrar</a></li>
                 {% endif %}
             </ul>
         </div>
     </div>
 </nav>
-
-
 
 <div class="container mt-4">
 
@@ -48,7 +51,24 @@
     <div class="card card-custom mb-4">
         <div class="card-body">
             <h1 class="card-title">{{ receita.titulo }}</h1>
-            <p><strong>Autor:</strong> {{ receita.user.username }} | <strong>Publicada em:</strong> {{ receita.criada_em|date:"d/m/Y H:i" }}</p>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <p class="mb-0"><strong>Autor:</strong> {{ receita.user.username }} | 
+                        <strong>Publicada em:</strong> {{ receita.criada_em|date:"d/m/Y H:i" }}
+                    </p>
+                </div>
+                {% if user.is_authenticated and user != receita.user %}
+                    <div>
+                        <button id="seguir-btn" 
+                                class="btn btn-secondary btn-sm fw-bold text-white" 
+                                data-user-id="{{ receita.user.id }}" 
+                                data-username="{{ receita.user.username }}" 
+                                onclick="toggleSeguir(this)">
+                            <span id="seguir-texto">Seguir</span>
+                        </button>
+                    </div>
+                {% endif %}
+            </div>
             {% if receita.atualizada_em != receita.criada_em %}
                 <p><strong>Última atualização:</strong> {{ receita.atualizada_em|date:"d/m/Y H:i" }}</p>
             {% endif %}
@@ -77,11 +97,11 @@
             {% if user.is_authenticated and user != receita.user %}
                 <p><strong>Avalie esta receita:</strong></p>
                 <div id="stars-container" class="mb-2">
-                    <span class="star" data-rating="1" onclick="avaliarReceita(1)">★</span>
-                    <span class="star" data-rating="2" onclick="avaliarReceita(2)">★</span>
-                    <span class="star" data-rating="3" onclick="avaliarReceita(3)">★</span>
-                    <span class="star" data-rating="4" onclick="avaliarReceita(4)">★</span>
-                    <span class="star" data-rating="5" onclick="avaliarReceita(5)">★</span>
+                    <span class="star" data-rating="1">★</span>
+                    <span class="star" data-rating="2">★</span>
+                    <span class="star" data-rating="3">★</span>
+                    <span class="star" data-rating="4">★</span>
+                    <span class="star" data-rating="5">★</span>
                 </div>
                 <div id="avaliacao-message" class="fw-bold"></div>
             {% elif user == receita.user %}
@@ -100,12 +120,19 @@
             {% if user.is_authenticated %}
                 <a href="{% url 'fazer_comentario' receita.id %}" class="btn btn-custom mb-3">Comentar nesta receita</a>
             {% else %}
-                <p><strong>Quer comentar?</strong> <a href="{% url 'paginaLogin' %}?next={{ request.get_full_path }}">Faça login</a> ou <a href="{% url 'registrarUser' %}?next={{ request.get_full_path }}">registre-se</a> para participar da conversa!</p>
+                <p><strong>Quer comentar?</strong> 
+                    <a href="{% url 'paginaLogin' %}?next={{ request.get_full_path }}">Faça login</a> ou 
+                    <a href="{% url 'registrarUser' %}?next={{ request.get_full_path }}">registre-se</a> para participar da conversa!
+                </p>
             {% endif %}
 
             {% for comentario in comentarios %}
                 <div class="border p-2 mb-2 rounded">
-                    <div><strong>{{ comentario.usuario.username }}</strong> - {{ comentario.criado_em|date:"d/m/Y H:i" }} {% if comentario.atualizado_em != comentario.criado_em %}<em>(editado em {{ comentario.atualizado_em|date:"d/m/Y H:i" }})</em>{% endif %}</div>
+                    <div><strong>{{ comentario.usuario.username }}</strong> - {{ comentario.criado_em|date:"d/m/Y H:i" }} 
+                        {% if comentario.atualizado_em != comentario.criado_em %}
+                            <em>(editado em {{ comentario.atualizado_em|date:"d/m/Y H:i" }})</em>
+                        {% endif %}
+                    </div>
                     <div>{{ comentario.texto }}</div>
                 </div>
             {% empty %}
@@ -117,6 +144,65 @@
 </div>
 
 <script>
+    // Obter o token CSRF
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    
+    const csrftoken = getCookie('csrftoken');
+    let isFollowing = false;
 
+    function verificarSeguindo() {
+        atualizarBotaoSeguir(false);
+    }
+
+    function atualizarBotaoSeguir(seguindo) {
+        const btn = document.getElementById('seguir-btn');
+        const texto = document.getElementById('seguir-texto');
+        if (btn && texto) {
+            isFollowing = seguindo;
+            if (seguindo) {
+                btn.className = 'btn btn-warning btn-sm fw-bold text-dark';
+                texto.textContent = 'Seguindo';
+            } else {
+                btn.className = 'btn btn-secondary btn-sm fw-bold text-white';
+                texto.textContent = 'Seguir';
+            }
+        }
+    }
+
+    function toggleSeguir(button) {
+        const userId = button.getAttribute('data-user-id');
+        const url = isFollowing ? `/receitas/api/parar-seguir/${userId}/` : `/receitas/api/seguir/${userId}/`;
+        fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                atualizarBotaoSeguir(data.action === 'seguindo');
+            } else {
+                console.error('Erro:', data.error);
+            }
+        })
+        .catch(error => console.error('Erro ao seguir/parar de seguir:', error));
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        verificarSeguindo();
+    });
 </script>
+
 {% endblock content %}

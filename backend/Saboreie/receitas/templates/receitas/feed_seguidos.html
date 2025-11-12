@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+
+{% block title %}Descobrir Usuários - Saborize{% endblock title %}
+
+{% block content %}
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-custom">
+    <div class="container d-flex align-items-center">
+        <a href="javascript:history.back()" class="me-3 text-decoration-none text-light">
+            <i class="bi bi-arrow-left fs-4"></i>
+        </a>
+        <a class="navbar-brand" href="{% url 'feed_receitas' %}">SABORIZE</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                {% if request.user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'listar_receitas' %}">Minhas Receitas</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'feed_seguidos' %}">Feed dos Seguidos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-4">
+    <h1 class="mb-3">Descobrir Usuários</h1>
+    <p>Encontre novos criadores de receitas para seguir e acompanhar suas publicações.</p>
+
+    {% if usuarios %}
+        <div class="row">
+            {% for usuario in usuarios %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card card-custom shadow-sm h-100">
+                        <div class="card-body text-center d-flex flex-column justify-content-between">
+                            <div>
+                                <h5 class="fw-bold mb-1">{{ usuario.username }}</h5>
+                                {% if usuario.receitas_count %}
+                                    <p class="text-muted mb-2">{{ usuario.receitas_count }} receita{{ usuario.receitas_count|pluralize:"s" }}</p>
+                                {% else %}
+                                    <p class="text-muted mb-2">Nenhuma receita publicada ainda</p>
+                                {% endif %}
+                            </div>
+
+                            <div class="mt-3">
+                                {% if usuario.is_seguido %}
+                                    <button class="btn btn-warning fw-bold text-dark btn-sm w-100" disabled>Seguindo</button>
+                                {% else %}
+                                    <form method="post" action="{% url 'seguir_usuario' usuario.id %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-secondary fw-bold text-white btn-sm w-100">
+                                            Seguir
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-secondary shadow-sm">
+            <h4 class="fw-bold">Nenhum usuário encontrado</h4>
+            <p>Atualmente não há outros usuários cadastrados para seguir.</p>
+            <a href="{% url 'feed_receitas' %}" class="btn btn-warning fw-bold text-dark">Voltar ao Feed Público</a>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+    .btn-custom {
+        background-color: #f0ad4e;
+        color: #000;
+        border: none;
+        transition: all 0.2s ease-in-out;
+    }
+    .btn-custom:hover {
+        background-color: #e0a800;
+        color: #000;
+    }
+    .card-custom {
+        border-radius: 10px;
+        transition: transform 0.2s ease;
+    }
+    .card-custom:hover {
+        transform: scale(1.02);
+    }
+</style>
+{% endblock content %}

@@ -1,9 +1,10 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.db.models import Q
 from django.contrib import messages
-from .models import User
+from django.contrib.auth.decorators import login_required
+from .models import User, TagsReceita
 from django.contrib.auth import authenticate, login, logout
-from .forms import CriacaoUser
+from .forms import CriacaoUser, PerfilForm
 
 
 # Create your views here.
@@ -46,3 +47,43 @@ def registrarUser(request):
 
 def home(request):
     return render(request, 'home.html')
+
+@login_required
+def perfil(request, username=None):
+    """View para visualizar perfil de usuário"""
+    if username:
+        user = get_object_or_404(User, username=username)
+    else:
+        user = request.user
+    
+    # Pega as últimas receitas do usuário
+    receitas_recentes = user.receitas.filter(publica=True)[:6]
+    
+    context = {
+        'perfil_usuario': user,
+        'receitas_recentes': receitas_recentes,
+        'is_own_profile': user == request.user,
+    }
+    
+    return render(request, 'autenticacao/perfil.html', context)
+
+@login_required
+def editar_perfil(request):
+    """View para editar perfil do usuário logado"""
+    if request.method == 'POST':
+        form = PerfilForm(request.POST, request.FILES, instance=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Perfil atualizado com sucesso!')
+            return redirect('perfil')
+        else:
+            messages.error(request, 'Por favor, corrija os erros abaixo.')
+    else:
+        form = PerfilForm(instance=request.user)
+    
+    context = {
+        'form': form,
+        'tags_receitas': TagsReceita.objects.all()
+    }
+    
+    return render(request, 'autenticacao/editar_perfil.html', context)

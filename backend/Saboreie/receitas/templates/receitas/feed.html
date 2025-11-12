@@ -20,6 +20,8 @@
                 {% if user.is_authenticated %}
                     <li class="nav-item"><a class="nav-link" href="{% url 'listar_receitas' %}">Minhas Receitas</a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'criar_receita' %}">Criar Receita</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'feed_seguidos' %}">Feed dos Seguidos</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'listar_usuarios' %}">Descobrir Usuários</a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'logout' %}">Logout</a></li>
                 {% else %}
                     <li class="nav-item"><a class="nav-link" href="{% url 'paginaLogin' %}">Login</a></li>
@@ -70,7 +72,7 @@
                     <div class="d-flex gap-2">
                         <a href="{% url 'ver_receita_feed' receita.id %}" class="btn btn-custom btn-sm">Ver Receita</a>
                         {% if user.is_authenticated %}
-                            <a href="{% url 'fazer_comentario' receita.id %}" class="btn btn-outline-warning btn-sm">Comentar</a>
+                            <a href="{% url 'fazer_comentario' receita.id %}" class="btn btn-custom btn-sm">Comentar</a>
                         {% else %}
                             <a href="{% url 'paginaLogin' %}?next={% url 'fazer_comentario' receita.id %}" class="btn btn-outline-secondary btn-sm">Login para Comentar</a>
                         {% endif %}
@@ -96,7 +98,7 @@
         {% endfor %}
     </div>
 
-    <!-- Divisao de paginas -->
+    <!-- Divisão de páginas -->
     {% if receitas.has_other_pages %}
         <nav aria-label="Paginação" class="mt-4">
             <ul class="pagination justify-content-center">

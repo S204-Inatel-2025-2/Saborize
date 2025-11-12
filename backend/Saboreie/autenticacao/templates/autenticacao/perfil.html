@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+
+{% block title %}Perfil - {{ perfil_usuario.username }}{% endblock %}
+
+{% block content %}
+<!-- Navbar -->
+<nav>
+    <div>
+        <a href="{% url 'home' %}">Saborize</a>
+        <ul>
+            {% if user.is_authenticated %}
+                <li><a href="{% url 'feed_receitas' %}">Feed</a></li>
+                <li><a href="{% url 'criar_receita' %}">Criar Receita</a></li>
+                <li><a href="{% url 'perfil' %}">Meu Perfil</a></li>
+                <li><a href="{% url 'logout' %}">Sair</a></li>
+            {% else %}
+                <li><a href="{% url 'paginaLogin' %}">Login</a></li>
+                <li><a href="{% url 'registrarUser' %}">Registrar</a></li>
+            {% endif %}
+        </ul>
+    </div>
+</nav>
+
+<div>
+    <!-- Header do Perfil -->
+    <div>
+        <div>
+            <!-- Foto de perfil -->
+            <div>
+                {% if perfil_usuario.foto_perfil %}
+                    <img src="{{ perfil_usuario.foto_perfil.url }}" alt="Foto de {{ perfil_usuario.username }}">
+                {% else %}
+                    <div>[Sem foto de perfil]</div>
+                {% endif %}
+            </div>
+            
+            <!-- Informações do usuário -->
+            <div>
+                <h2>
+                    {% if perfil_usuario.first_name or perfil_usuario.last_name %}
+                        {{ perfil_usuario.first_name }} {{ perfil_usuario.last_name }}
+                    {% else %}
+                        {{ perfil_usuario.username }}
+                    {% endif %}
+                </h2>
+                <p>@{{ perfil_usuario.username }}</p>
+                
+                {% if perfil_usuario.bio %}
+                    <p>{{ perfil_usuario.bio }}</p>
+                {% endif %}
+                
+                <div>
+                    <div>
+                        <strong>{{ perfil_usuario.total_receitas }}</strong><br>
+                        <span>Receitas</span>
+                    </div>
+                    <div>
+                        <strong>{{ perfil_usuario.total_seguidores }}</strong><br>
+                        <span>Seguidores</span>
+                    </div>
+                    <div>
+                        <strong>{{ perfil_usuario.total_seguindo }}</strong><br>
+                        <span>Seguindo</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Botões de ação -->
+            <div>
+                {% if is_own_profile %}
+                    <a href="{% url 'editar_perfil' %}">Editar Perfil</a>
+                {% else %}
+                    <button>Seguir</button>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Informações adicionais -->
+        <div>
+            {% if perfil_usuario.cidade or perfil_usuario.estado %}
+                <div>
+                    Localização: {{ perfil_usuario.cidade }}{% if perfil_usuario.cidade and perfil_usuario.estado %}, {% endif %}{{ perfil_usuario.estado }}
+                </div>
+            {% endif %}
+            
+            {% if perfil_usuario.email and is_own_profile %}
+                <div>
+                    Email: {{ perfil_usuario.email }}
+                </div>
+            {% endif %}
+            
+            {% if perfil_usuario.data_nascimento and is_own_profile %}
+                <div>
+                    Nasceu em: {{ perfil_usuario.data_nascimento|date:"d/m/Y" }}
+                </div>
+            {% endif %}
+            
+            {% if perfil_usuario.telefone and is_own_profile %}
+                <div>
+                    Telefone: {{ perfil_usuario.telefone }}
+                </div>
+            {% endif %}
+            
+            <!-- Tags favoritas -->
+            {% if perfil_usuario.tags_favoritas.all %}
+                <div>
+                    <h6>Tipos de receitas favoritas:</h6>
+                    <div>
+                        {% for tag in perfil_usuario.tags_favoritas.all %}
+                            <span>{{ tag.nome }}</span>{% if not forloop.last %}, {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Receitas do usuário -->
+    <div>
+        <h4>
+            {% if is_own_profile %}
+                Minhas Receitas
+            {% else %}
+                Receitas de {{ perfil_usuario.username }}
+            {% endif %}
+        </h4>
+        
+        {% if receitas_recentes %}
+            <div>
+                {% for receita in receitas_recentes %}
+                    <div>
+                        <h5>{{ receita.titulo }}</h5>
+                        <p>{{ receita.descricao|truncatewords:15 }}</p>
+                        <div>
+                            <span>{{ receita.criada_em|date:"d/m/Y" }}</span>
+                            <div>
+                                {% if receita.media_avaliacoes > 0 %}
+                                    <span>
+                                        Avaliação: {{ receita.media_avaliacoes }}/5
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <a href="#">Ver Receita</a>
+                    </div>
+                {% endfor %}
+            </div>
+            
+            {% if perfil_usuario.total_receitas > 6 %}
+                <div>
+                    <a href="#">Ver todas as receitas</a>
+                </div>
+            {% endif %}
+        {% else %}
+            <div>
+                <h5>
+                    {% if is_own_profile %}
+                        Você ainda não publicou nenhuma receita
+                    {% else %}
+                        Este usuário ainda não publicou nenhuma receita
+                    {% endif %}
+                </h5>
+                {% if is_own_profile %}
+                    <a href="{% url 'criar_receita' %}">Criar minha primeira receita</a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

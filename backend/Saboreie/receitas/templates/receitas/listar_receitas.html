@@ -44,14 +44,82 @@
                     {% for receita in receitas %}
                         <div class="card mb-3 shadow-sm">
                             <div class="card-body">
-                                <h5 class="card-title">{{ receita.titulo }}</h5>
-                                <p class="card-text"><strong>Descrição:</strong> {{ receita.descricao }}</p>
-                                <p class="card-text"><strong>Ingredientes:</strong> {{ receita.ingredientes }}</p>
-                                <p class="card-text"><strong>Passos:</strong> {{ receita.passos }}</p>
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <h5 class="card-title mb-0">{{ receita.titulo }}</h5>
+                                    <span class="badge {% if receita.publica %}bg-success{% else %}bg-warning text-dark{% endif %}">
+                                        {% if receita.publica %}
+                                            <i class="bi bi-globe"></i> Pública
+                                        {% else %}
+                                            <i class="bi bi-lock"></i> Privada
+                                        {% endif %}
+                                    </span>
+                                </div>
+                                
+                                <p class="card-text"><strong>Descrição:</strong> {{ receita.descricao|truncatewords:15 }}</p>
+                                <p class="card-text"><strong>Ingredientes:</strong> {{ receita.ingredientes|truncatewords:10 }}</p>
+                                <p class="card-text"><strong>Passos:</strong> {{ receita.passos|truncatewords:10 }}</p>
+                                
+                                <!-- Estatísticas de avaliação -->
+                                <div class="mb-3">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            {% if receita.total_avaliacoes > 0 %}
+                                                <span class="badge bg-warning text-dark me-2">
+                                                    <i class="bi bi-star-fill"></i> {{ receita.media_avaliacoes }}/5
+                                                </span>
+                                                <small class="text-muted">
+                                                    ({{ receita.total_avaliacoes }} avaliação{{ receita.total_avaliacoes|pluralize:"ões" }})
+                                                </small>
+                                            {% else %}
+                                                <span class="badge bg-secondary text-white me-2">
+                                                    <i class="bi bi-star"></i> Sem avaliações
+                                                </span>
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-md-6">
+                                            <span class="badge bg-secondary text-white">
+                                                <i class="bi bi-chat-dots"></i> {{ receita.total_comentarios }} comentário{{ receita.total_comentarios|pluralize:"s" }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    
+                                    {% if receita.total_avaliacoes > 0 %}
+                                        <div class="mt-2">
+                                            <small class="text-muted">
+                                                <strong>Distribuição das notas:</strong>
+                                                {% for avaliacao in receita.avaliacoes.all %}
+                                                    <span class="me-2">
+                                                        {{ avaliacao.usuario.username }}: 
+                                                        {% for i in "12345" %}
+                                                            {% if forloop.counter <= avaliacao.nota %}
+                                                                <i class="bi bi-star-fill text-warning"></i>
+                                                            {% else %}
+                                                                <i class="bi bi-star text-muted"></i>
+                                                            {% endif %}
+                                                        {% endfor %}
+                                                    </span>
+                                                {% endfor %}
+                                            </small>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
                                 <p class="card-text"><small class="text-muted">Criada em: {{ receita.criada_em }}</small></p>
+
+                                <!-- Botões com estilo uniforme -->
                                 <div class="mt-2">
-                                    <a href="{% url 'ver_receita' receita.id %}" class="btn btn-primary btn-sm">Ver Receita Completa</a>
-                                    <a href="{% url 'fazer_comentario' receita.id %}" class="btn btn-secondary btn-sm">Comentar</a>
+                                    <a href="{% url 'ver_receita' receita.id %}" class="btn btn-warning text-dark fw-bold btn-sm">
+                                        <i class="bi bi-eye"></i> Ver Receita Completa
+                                    </a>
+                                    <a href="{% url 'fazer_comentario' receita.id %}" class="btn btn-warning text-dark fw-bold btn-sm">
+                                        <i class="bi bi-chat-dots"></i> Comentar
+                                    </a>
+                                    <a href="{% url 'editar_receita' receita.id %}" class="btn btn-warning text-dark fw-bold btn-sm">
+                                        <i class="bi bi-pencil"></i> Editar
+                                    </a>
+                                    <a href="{% url 'confirmar_deletar_receita' receita.id %}" class="btn btn-warning text-dark fw-bold btn-sm">
+                                        <i class="bi bi-trash"></i> Deletar
+                                    </a>
                                 </div>
                             </div>
                         </div>
@@ -63,7 +131,9 @@
                 {% endif %}
 
                 <div class="text-center mt-3">
-                    <a href="{% url 'criar_receita' %}" class="btn btn-custom btn-lg">Criar Nova Receita</a>
+                    <a href="{% url 'criar_receita' %}" class="btn btn-warning text-dark fw-bold btn-lg">
+                        <i class="bi bi-plus-circle"></i> Criar Nova Receita
+                    </a>
                 </div>
             </div>
         </div>

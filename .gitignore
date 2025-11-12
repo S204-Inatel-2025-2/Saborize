@@ -1,11 +1,42 @@
+# Node.js
 node_modules/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+pip-log.txt
+pip-delete-this-directory.txt
+.tox
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+.git
+.mypy_cache
+.pytest_cache
+.hypothesis
+.env
+.venv
+/dist/
+/build/
+*.egg
+*.egg-info/
+_mailinglist
+.tox/
+.cache/
+.pytest_cache/
+*.db
+*.sqlite3
+
 # Relatórios de Teste
 cypress/reports/
 
-# Arquivos de Cache do Python
-__pycache__/
-*.pyc
-
 # Banco de Dados
-*.sqlite3
 db.sqlite3
