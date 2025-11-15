@@ -1,6 +1,7 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from autenticacao.models import User
+from autenticacao.models import TagsReceita
 
 class Receita(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='receitas')
@@ -14,6 +15,13 @@ class Receita(models.Model):
     passos = models.TextField(
         help_text="Descreva os passos para preparar a receita."
     )
+    tags = models.ManyToManyField(
+        TagsReceita,
+        related_name='receitas',
+        blank=True
+    )
+
+
     publica = models.BooleanField(default=True, help_text="Receita visível no feed público")
     criada_em = models.DateTimeField(auto_now_add=True)
     atualizada_em = models.DateTimeField(auto_now=True)

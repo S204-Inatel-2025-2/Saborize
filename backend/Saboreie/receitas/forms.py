@@ -1,8 +1,11 @@
+from django import forms
 from .models import Receita
-from django.forms import ModelForm 
 
 
-class ReceitaForm(ModelForm):
+class ReceitaForm(forms.ModelForm):
     class Meta:
         model = Receita
-        fields = ['titulo', 'descricao', 'ingredientes', 'passos']
+        fields = ['titulo', 'descricao', 'ingredientes', 'passos', 'tags']
+        widgets = {
+            'tags': forms.CheckboxSelectMultiple()
+        }

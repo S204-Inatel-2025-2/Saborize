@@ -1,0 +1,255 @@
+[
+    {
+      "model": "autenticacao.tagsreceita",
+      "pk": 1,
+      "fields": {
+        "nome": "Entrada",
+        "descricao": "Pratos leves servidos antes do prato principal.",
+        "criada_em": "2025-01-01T00:00:00Z"
+      }
+    },
+    {
+      "model": "autenticacao.tagsreceita",
+      "pk": 2,
+      "fields": {
+        "nome": "Prato principal",
+        "descricao": "Receitas que são a refeição principal.",
+        "criada_em": "2025-01-01T00:00:00Z"
+      }
+    },
+    {
+      "model": "autenticacao.tagsreceita",
+      "pk": 3,
+      "fields": {
+        "nome": "Acompanhamento",
+        "descricao": "Pratos servidos junto do prato principal.",
+        "criada_em": "2025-01-01T00:00:00Z"
+      }
+    },
+    {
+      "model": "autenticacao.tagsreceita",
+      "pk": 4,
+      "fields": {
+        "nome": "Sobremesa",
+        "descricao": "Doces e sobremesas em geral.",
+        "criada_em": "2025-01-01T00:00:00Z"
+      }
+    },
+    {
+      "model": "autenticacao.tagsreceita",
+      "pk": 5,
+      "fields": {
+        "nome": "Lanche",
+        "descricao": "Receitas rápidas para comer entre as refeições.",
+        "criada_em": "2025-01-01T00:00:00Z"
+      }
+    },
+    {
+      "model": "autenticacao.tagsreceita",
+      "pk": 6,
+      "fields": {
+        "nome": "Bebida",
+        "descricao": "Sucos, cafés, drinks e outras bebidas.",
+        "criada_em": "2025-01-01T00:00:00Z"
+      }
+    },
+    {
+      "model": "autenticacao.tagsreceita",
+      "pk": 7,
+      "fields": {
+        "nome": "Salada",
+        "descricao": "Receitas de saladas variadas.",
+        "criada_em": "2025-01-01T00:00:00Z"
+      }
+    },
+    {
+      "model": "autenticacao.tagsreceita",
+      "pk": 8,
+      "fields": {
+        "nome": "Sopa",
+        "descricao": "Sopas e caldos diversos.",
+        "criada_em": "2025-01-01T00:00:00Z"
+      }
+    },
+    {
+      "model": "autenticacao.tagsreceita",
+      "pk": 9,
+      "fields": {
+        "nome": "Petisco",
+        "descricao": "Porções e comidas de boteco.",
+        "criada_em": "2025-01-01T00:00:00Z"
+      }
+    },
+    {
+      "model": "autenticacao.tagsreceita",
+      "pk": 10,
+      "fields": {
+        "nome": "Vegetariano",
+        "descricao": "Receitas sem carne, podendo conter ovos e laticínios.",
+        "criada_em": "2025-01-01T00:00:00Z"
+      }
+    },
+    {
+      "model": "autenticacao.tagsreceita",
+      "pk": 11,
+      "fields": {
+        "nome": "Vegano",
+        "descricao": "Receitas sem nenhum ingrediente de origem animal.",
+        "criada_em": "2025-01-01T00:00:00Z"
+      }
+    },
+    {
+      "model": "autenticacao.tagsreceita",
+      "pk": 12,
+      "fields": {
+        "nome": "Sem glúten",
+        "descricao": "Preparações sem ingredientes que contenham glúten.",
+        "criada_em": "2025-01-01T00:00:00Z"
+      }
+    },
+    {
+      "model": "autenticacao.tagsreceita",
+      "pk": 13,
+      "fields": {
+        "nome": "Sem lactose",
+        "descricao": "Receitas livres de leite e derivados.",
+        "criada_em": "2025-01-01T00:00:00Z"
+      }
+    },
+    {
+      "model": "autenticacao.tagsreceita",
+      "pk": 14,
+      "fields": {
+        "nome": "Low carb",
+        "descricao": "Refeições com baixo teor de carboidratos.",
+        "criada_em": "2025-01-01T00:00:00Z"
+      }
+    },
+    {
+      "model": "autenticacao.tagsreceita",
+      "pk": 15,
+      "fields": {
+        "nome": "Fitness",
+        "descricao": "Receitas focadas em alimentação saudável.",
+        "criada_em": "2025-01-01T00:00:00Z"
+      }
+    },
+    {
+      "model": "autenticacao.tagsreceita",
+      "pk": 16,
+      "fields": {
+        "nome": "Proteico",
+        "descricao": "Pratos com maior teor de proteínas.",
+        "criada_em": "2025-01-01T00:00:00Z"
+      }
+    },
+    {
+      "model": "autenticacao.tagsreceita",
+      "pk": 17,
+      "fields": {
+        "nome": "Brasileira",
+        "descricao": "Pratos tradicionais e típicos do Brasil.",
+        "criada_em": "2025-01-01T00:00:00Z"
+      }
+    },
+    {
+      "model": "autenticacao.tagsreceita",
+      "pk": 18,
+      "fields": {
+        "nome": "Italiana",
+        "descricao": "Massas, molhos, pizzas e pratos italianos.",
+        "criada_em": "2025-01-01T00:00:00Z"
+      }
+    },
+    {
+      "model": "autenticacao.tagsreceita",
+      "pk": 19,
+      "fields": {
+        "nome": "Japonesa",
+        "descricao": "Sushi, sashimi, lámen e culinária japonesa.",
+        "criada_em": "2025-01-01T00:00:00Z"
+      }
+    },
+    {
+      "model": "autenticacao.tagsreceita",
+      "pk": 20,
+      "fields": {
+        "nome": "Mexicana",
+        "descricao": "Tacos, burritos e pratos mais apimentados.",
+        "criada_em": "2025-01-01T00:00:00Z"
+      }
+    },
+    {
+      "model": "autenticacao.tagsreceita",
+      "pk": 21,
+      "fields": {
+        "nome": "Rápida",
+        "descricao": "Receita pronta em até 30 minutos.",
+        "criada_em": "2025-01-01T00:00:00Z"
+      }
+    },
+    {
+      "model": "autenticacao.tagsreceita",
+      "pk": 22,
+      "fields": {
+        "nome": "Fácil",
+        "descricao": "Receita simples, ideal para iniciantes.",
+        "criada_em": "2025-01-01T00:00:00Z"
+      }
+    },
+    {
+      "model": "autenticacao.tagsreceita",
+      "pk": 23,
+      "fields": {
+        "nome": "Intermediária",
+        "descricao": "Exige algum conhecimento culinário.",
+        "criada_em": "2025-01-01T00:00:00Z"
+      }
+    },
+    {
+      "model": "autenticacao.tagsreceita",
+      "pk": 24,
+      "fields": {
+        "nome": "Doce",
+        "descricao": "Pratos e preparações adocicadas.",
+        "criada_em": "2025-01-01T00:00:00Z"
+      }
+    },
+    {
+      "model": "autenticacao.tagsreceita",
+      "pk": 25,
+      "fields": {
+        "nome": "Salgado",
+        "descricao": "Receitas salgadas e temperadas.",
+        "criada_em": "2025-01-01T00:00:00Z"
+      }
+    },
+    {
+      "model": "autenticacao.tagsreceita",
+      "pk": 26,
+      "fields": {
+        "nome": "Apimentado",
+        "descricao": "Pratos com presença marcante de pimenta.",
+        "criada_em": "2025-01-01T00:00:00Z"
+      }
+    },
+    {
+      "model": "autenticacao.tagsreceita",
+      "pk": 27,
+      "fields": {
+        "nome": "Cremoso",
+        "descricao": "Receitas com textura mais cremosa.",
+        "criada_em": "2025-01-01T00:00:00Z"
+      }
+    },
+    {
+      "model": "autenticacao.tagsreceita",
+      "pk": 28,
+      "fields": {
+        "nome": "Crocante",
+        "descricao": "Pratos ou petiscos com textura crocante.",
+        "criada_em": "2025-01-01T00:00:00Z"
+      }
+    }
+  ]
+  
