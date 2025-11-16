@@ -1,5 +1,4 @@
 from django.urls import path
-from receitas.views import listar_tags
 from . import views
  
 urlpatterns = [
@@ -37,7 +36,4 @@ urlpatterns = [
     path('seguidos/', views.feed_seguidos, name='feed_seguidos'),
     path('api/seguir/<int:user_id>/', views.seguir_usuario, name='seguir_usuario'),
     path('api/parar-seguir/<int:user_id>/', views.parar_de_seguir, name='parar_de_seguir'),
-
-    # listar todas as tags
-     path("tags/", listar_tags, name="listar_tags"),
 ]
