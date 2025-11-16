@@ -16,7 +16,7 @@
         </button>
 
         <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto">
+            <ul class="navbar-nav ms-auto">""
 
                 {% if user.is_authenticated %}
                     <li class="nav-item"><a class="nav-link" href="{% url 'feed_receitas' %}">Feed</a></li>
@@ -167,7 +167,7 @@
                                 {% endif %}
                             </div>
 
-                            <a href="{% url 'detalhes_receita' receita.id %}"
+                            <a href="{% url 'ver_receita' receita.id %}"
                                class="btn btn-custom btn-sm mt-3 w-100 fw-bold">
                                 Ver Receita
                             </a>
