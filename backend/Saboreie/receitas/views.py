@@ -11,17 +11,7 @@ import json
 
 from .forms import ReceitaForm as CriarReceita
 from .models import Receita, Comentario, Avaliacao, Seguidor
-from autenticacao.models import User, TagsReceita
-from autenticacao.models import TagsReceita
-from django.http import JsonResponse
-
-
-
-
-
-def listar_tags(request):
-    tags = TagsReceita.objects.all().values("id", "nome", "descricao")
-    return JsonResponse(list(tags), safe=False) # Retorna uma lista de tags em formato JSON
+from autenticacao.models import User
 
 
 @login_required
@@ -33,7 +23,6 @@ def criar_receita(request):
             receita = form.save(commit=False)
             receita.user = request.user
             receita.save()  
-            form.save_m2m()  # <-- SALVA AS TAGS AQUI
             messages.success(request, 'Receita criada com sucesso!')
             return redirect('home')
     return render(request, 'receitas/criar_receita.html', {'form': form})
@@ -41,13 +30,15 @@ def criar_receita(request):
 
 @login_required
 def editar_receita(request, receita_id):
+    """
+    View para editar uma receita (apenas o próprio autor pode editar)
+    """
     receita = get_object_or_404(Receita, id=receita_id, user=request.user)
     
     if request.method == 'POST':
         form = CriarReceita(request.POST, instance=receita)
         if form.is_valid():
-            receita = form.save()
-            form.save_m2m()  # <-- salva tags ao editar
+            form.save()
             messages.success(request, 'Receita atualizada com sucesso!')
             return redirect('listar_receitas')
     else:
@@ -316,32 +307,15 @@ def feed_receitas(request):
     # Buscar receitas públicas
     receitas = Receita.objects.filter(publica=True).select_related('user').prefetch_related('comentarios')
     
-    # Filtros existentes
+    # Filtros de busca
     busca = request.GET.get('busca', '').strip()
     ordenacao = request.GET.get('ordem', 'recentes')  # recentes, populares
-
-    # ⚠️ NOVOS FILTROS
-    tag_id = request.GET.get('tag')              # ex.: ?tag=3
-    autor = request.GET.get('autor', '').strip() # ex.: ?autor=joao
-
-    # Filtro de texto (já existia)
+    
     if busca:
         receitas = receitas.filter(
-            Q(titulo__icontains=busca) |
+            Q(titulo__icontains=busca) | 
             Q(descricao__icontains=busca) |
             Q(ingredientes__icontains=busca)
-        )
-
-    # 🔹 Filtro por TAG (ManyToMany)
-    if tag_id:
-        receitas = receitas.filter(tags__id=tag_id)
-
-    # 🔹 Filtro por AUTOR (username, nome ou sobrenome)
-    if autor:
-        receitas = receitas.filter(
-            Q(user__username__icontains=autor) |
-            Q(user__first_name__icontains=autor) |
-            Q(user__last_name__icontains=autor)
         )
     
     # Aplicar ordenação
@@ -355,9 +329,6 @@ def feed_receitas(request):
     paginator = Paginator(receitas, 10)  # 10 receitas por página
     page_number = request.GET.get('page', 1)
     page_obj = paginator.get_page(page_number)
-
-    # 🔹 Lista de tags para o front montar o filtro
-    tags_disponiveis = TagsReceita.objects.all().order_by('nome')
     
     context = {
         'receitas': page_obj,
@@ -367,15 +338,10 @@ def feed_receitas(request):
         'opcoes_ordenacao': [
             ('recentes', 'Mais Recentes'),
             ('populares', 'Mais Populares'),
-        ],
-        # novos dados pro template
-        'tags': tags_disponiveis,
-        'tag_selecionada': int(tag_id) if tag_id else None,
-        'autor_filtrado': autor,
+        ]
     }
     
     return render(request, 'receitas/feed.html', context)
-
 
 
 def ver_receita_feed(request, receita_id):
