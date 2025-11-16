@@ -5,14 +5,17 @@ from .models import Receita, Comentario, Avaliacao, Seguidor
 @admin.register(Receita)
 class ReceitaAdmin(admin.ModelAdmin):
     list_display = ['titulo', 'user', 'publica', 'criada_em', 'total_comentarios', 'total_avaliacoes', 'media_avaliacoes']
-    list_filter = ['publica', 'criada_em', 'user']
+    list_filter = ['publica', 'criada_em', 'user', 'tags']  # ← agora pode filtrar receitas por tag no admin
     search_fields = ['titulo', 'descricao', 'ingredientes']
     readonly_fields = ['criada_em', 'atualizada_em']
     list_editable = ['publica']
-    
+
+    # 👇 MOSTRAR CAMPO DE TAGS NO ADMIN
+    filter_horizontal = ('tags',)
+
     fieldsets = (
         ('Informações Básicas', {
-            'fields': ('user', 'titulo', 'publica')
+            'fields': ('user', 'titulo', 'publica', 'tags')  # ← tags adicionadas aqui
         }),
         ('Conteúdo', {
             'fields': ('descricao', 'ingredientes', 'passos')
