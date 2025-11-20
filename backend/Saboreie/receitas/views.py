@@ -764,9 +764,9 @@ def listar_usuarios(request):
     
     # Buscar todos os usuários exceto o próprio usuário
     usuarios = User.objects.exclude(id=request.user.id).annotate(
-        total_receitas=models.Count('receitas', filter=models.Q(receitas__publica=True)),
-        total_seguidores=models.Count('seguidores')
-    ).order_by('-total_receitas')
+        receitas_count=models.Count('receitas', filter=models.Q(receitas__publica=True)),
+        seguidores_count=models.Count('seguidores')
+    ).order_by('-receitas_count')
     
     # Adicionar informação se já está seguindo cada usuário
     for usuario in usuarios:
