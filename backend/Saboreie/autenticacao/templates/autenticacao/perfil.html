@@ -4,6 +4,22 @@
 
 {% block content %}
 
+<!-- CSS DOS CARDS DE RECEITA -->
+<style>
+.card-receita {
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    border: 1px solid rgba(0, 0, 0, 0.3) !important;
+    box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+.card-receita:hover {
+    transform: translateY(-6px);
+    box-shadow: 0px 6px 16px rgba(0, 0, 0, 0.45);
+    border-color: rgba(0, 0, 0, 0.6) !important;
+    background: rgba(255, 255, 255, 0.05);
+}
+</style>
+
 <!-- NAVBAR PADRÃO -->
 <nav class="navbar navbar-expand-lg navbar-custom">
     <div class="container">
@@ -16,7 +32,7 @@
         </button>
 
         <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto">""
+            <ul class="navbar-nav ms-auto">
 
                 {% if user.is_authenticated %}
                     <li class="nav-item"><a class="nav-link" href="{% url 'feed_receitas' %}">Feed</a></li>
@@ -141,22 +157,43 @@
     <!-- RECEITAS -->
     <div class="card card-custom p-4">
 
-        <h4 class="mb-3">
+        <!-- TÍTULO + BOTÃO NOVA RECEITA -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="m-0">
+                {% if is_own_profile %}
+                    Minhas Receitas
+                {% else %}
+                    Receitas de {{ perfil_usuario.username }}
+                {% endif %}
+            </h4>
+
             {% if is_own_profile %}
-                Minhas Receitas
-            {% else %}
-                Receitas de {{ perfil_usuario.username }}
+                <a href="{% url 'criar_receita' %}" class="btn btn-custom fw-bold px-3 py-2">
+                    Nova Receita +
+                </a>
             {% endif %}
-        </h4>
+        </div>
 
         {% if receitas_recentes %}
             <div class="row g-3">
 
                 {% for receita in receitas_recentes %}
                     <div class="col-md-4">
-                        <div class="border rounded p-3 h-100">
+
+                        <!-- NOVO CARD COM HOVER -->
+                        <div class="card-receita rounded p-3 h-100">
 
                             <h5 class="fw-bold">{{ receita.titulo }}</h5>
+
+                            <!-- TAGS DA RECEITA -->
+                            <div class="mb-2">
+                                {% for tag in receita.tags.all %}
+                                    <span class="badge bg-warning text-dark">{{ tag.nome }}</span>
+                                {% empty %}
+                                    <span class="text-muted">Sem categoria</span>
+                                {% endfor %}
+                            </div>
+
                             <p>{{ receita.descricao|truncatewords:15 }}</p>
 
                             <div class="d-flex justify-content-between">
@@ -172,6 +209,7 @@
                                 Ver Receita
                             </a>
                         </div>
+
                     </div>
                 {% endfor %}
 
@@ -209,7 +247,6 @@ function toggleSeguirPerfil(btn) {
 
     const usuarioId = btn.getAttribute("data-user-id");
 
-    // alterna cor estilo Saborize
     if (btn.classList.contains("btn-secondary")) {
         btn.classList.remove("btn-secondary");
         btn.classList.add("btn-warning", "text-dark");
@@ -219,8 +256,6 @@ function toggleSeguirPerfil(btn) {
         btn.classList.add("btn-secondary", "text-white");
         btn.textContent = "Seguir";
     }
-
-    // aqui você pode depois chamar sua API real
 }
 </script>
 
