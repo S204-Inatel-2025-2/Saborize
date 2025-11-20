@@ -8,6 +8,8 @@ from django.core.paginator import Paginator
 from django.db.models import Q, Avg
 from django.template.context_processors import csrf
 import json
+import openai
+from django.conf import settings
 
 from .forms import ReceitaForm as CriarReceita
 from .models import Receita, Comentario, Avaliacao, Seguidor
@@ -764,9 +766,9 @@ def listar_usuarios(request):
     
     # Buscar todos os usuários exceto o próprio usuário
     usuarios = User.objects.exclude(id=request.user.id).annotate(
-        total_receitas=models.Count('receitas', filter=models.Q(receitas__publica=True)),
-        total_seguidores=models.Count('seguidores')
-    ).order_by('-total_receitas')
+        receitas_count=models.Count('receitas', filter=models.Q(receitas__publica=True)),
+        seguidores_count=models.Count('seguidores')
+    ).order_by('-receitas_count')
     
     # Adicionar informação se já está seguindo cada usuário
     for usuario in usuarios:
@@ -778,3 +780,152 @@ def listar_usuarios(request):
     }
     
     return render(request, 'receitas/listar_usuarios.html', context)
+
+
+@login_required
+def gerador_receitas_ai(request):
+    """
+    View para gerar receitas usando OpenAI API (otimizada para baixo custo)
+    """
+    if request.method == 'POST':
+        # Verificar se o usuário tem API key configurada
+        if not request.user.has_openai_api_key():
+            messages.error(request, 'Configure sua OpenAI API Key no seu perfil para usar esta funcionalidade.')
+            return redirect('gerador_receitas_ai')
+        
+        # Pegar dados do formulário
+        tags_selecionadas = request.POST.getlist('tags')
+        tempo_preparo = request.POST.get('tempo_preparo')
+        dificuldade = request.POST.get('dificuldade')
+        observacoes = request.POST.get('observacoes', '')
+        
+        if not tags_selecionadas:
+            messages.error(request, 'Selecione pelo menos uma tag para gerar a receita.')
+            return redirect('gerador_receitas_ai')
+        
+        # Limite de uso para economizar API calls
+        session_count = request.session.get('ai_recipe_count', 0)
+        if session_count >= 10:
+            messages.warning(request, 'Limite de 10 receitas por sessão atingido. Faça login novamente para continuar. (Medida de economia)')
+            return redirect('gerador_receitas_ai')
+        
+        try:
+            # Configurar cliente OpenAI com timeout e retry
+            api_key = request.user.get_openai_api_key()
+            
+            # Validar API key format
+            if not api_key or not api_key.startswith('sk-'):
+                messages.error(request, 'API Key inválida. Verifique se está no formato correto (sk-...)')
+                return redirect('gerador_receitas_ai')
+            
+            client = openai.OpenAI(
+                api_key=api_key,
+                timeout=30.0,  # 30 second timeout
+                max_retries=2
+            )
+            
+            # Test API key first with a minimal request
+            try:
+                test_response = client.chat.completions.create(
+                    model="gpt-3.5-turbo",
+                    messages=[{"role": "user", "content": "Hi"}],
+                    max_tokens=5
+                )
+            except Exception as test_error:
+                if "insufficient_quota" in str(test_error):
+                    messages.error(request, 'Erro de quota da OpenAI. Verifique: 1) Se adicionou créditos na sua conta, 2) Se a API key está ativa, 3) Se não tem limites de uso configurados.')
+                elif "invalid_api_key" in str(test_error):
+                    messages.error(request, 'API Key inválida. Verifique se copiou corretamente da OpenAI.')
+                elif "model_not_found" in str(test_error):
+                    messages.error(request, 'Modelo não encontrado. Sua conta pode não ter acesso ao GPT-3.5-turbo.')
+                else:
+                    messages.error(request, f'Erro ao testar API Key: {str(test_error)}')
+                return redirect('gerador_receitas_ai')
+            
+            # Preparar tags
+            tags_nomes = TagsReceita.objects.filter(id__in=tags_selecionadas).values_list('nome', flat=True)
+            tags_texto = ', '.join(tags_nomes)
+            
+            # Construir prompt (mais conciso para economizar tokens)
+            prompt = f"""Receita {tags_texto}, {tempo_preparo}, dificuldade {dificuldade}.
+{f"Obs: {observacoes}" if observacoes else ""}
+
+Formato:
+**TÍTULO**
+**INGREDIENTES:**
+- [lista]
+**PREPARO:**
+1. [passos]
+**TEMPO/RENDIMENTO**"""
+
+            # Fazer chamada principal para OpenAI
+            response = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "Você é um chef. Responda em português brasileiro. Seja conciso."},
+                    {"role": "user", "content": prompt}
+                ],
+                max_tokens=800,
+                temperature=0.5
+            )
+            
+            receita_gerada = response.choices[0].message.content
+            
+            # Incrementar contador de uso da sessão
+            request.session['ai_recipe_count'] = session_count + 1
+            messages.success(request, f'Receita gerada! ({session_count + 1}/10 desta sessão)')
+            
+            context = {
+                'receita_gerada': receita_gerada,
+                'tags': TagsReceita.objects.all(),
+                'tags_selecionadas': tags_selecionadas,
+                'tempo_preparo': tempo_preparo,
+                'dificuldade': dificuldade,
+                'observacoes': observacoes,
+                'success': True,
+                'usage_count': session_count + 1
+            }
+            
+        except openai.RateLimitError as e:
+            messages.error(request, 'Limite de requisições atingido. Tente novamente em alguns minutos.')
+            context = {'tags': TagsReceita.objects.all(), 'error': True}
+            
+        except openai.AuthenticationError as e:
+            messages.error(request, 'Erro de autenticação. Verifique sua API Key.')
+            context = {'tags': TagsReceita.objects.all(), 'error': True}
+            
+        except openai.InsufficientQuotaError as e:
+            messages.error(request, '''Quota insuficiente na OpenAI. 
+            
+Possíveis soluções:
+• Adicione créditos em: https://platform.openai.com/account/billing
+• Verifique se sua conta tem método de pagamento válido
+• Aguarde se você está no plano gratuito (tem limites por hora/dia)
+• Verifique se não configurou limites baixos demais nas configurações''')
+            context = {'tags': TagsReceita.objects.all(), 'error': True}
+            
+        except Exception as e:
+            error_msg = str(e).lower()
+            if "insufficient_quota" in error_msg or "quota" in error_msg:
+                messages.error(request, '''Problema de quota da OpenAI.
+                
+Verificações necessárias:
+1. Visite: https://platform.openai.com/account/billing
+2. Confirme que tem créditos disponíveis  
+3. Adicione um cartão de crédito se necessário
+4. Verifique os limites de uso em: https://platform.openai.com/account/limits''')
+            elif "invalid" in error_msg and "key" in error_msg:
+                messages.error(request, 'API Key inválida. Gere uma nova em: https://platform.openai.com/api-keys')
+            else:
+                messages.error(request, f'Erro inesperado: {str(e)}')
+            
+            context = {'tags': TagsReceita.objects.all(), 'error': True}
+    
+    else:
+        session_count = request.session.get('ai_recipe_count', 0)
+        context = {
+            'tags': TagsReceita.objects.all(),
+            'usage_count': session_count
+        }
+    
+    return render(request, 'receitas/gerador_receitas_ai.html', context)

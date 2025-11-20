@@ -3,165 +3,255 @@
 {% block title %}Editar Perfil{% endblock %}
 
 {% block content %}
-<!-- Navbar -->
-<nav>
-    <div>
-        <a href="{% url 'home' %}">Saborize</a>
-        <ul>
-            {% if user.is_authenticated %}
-                <li><a href="{% url 'feed_receitas' %}">Feed</a></li>
-                <li><a href="{% url 'criar_receita' %}">Criar Receita</a></li>
-                <li><a href="{% url 'perfil' %}">Meu Perfil</a></li>
-                <li><a href="{% url 'logout' %}">Sair</a></li>
+<style>
+    /* Container geral */
+    .edit-container {
+        max-width: 800px;
+        margin: 30px auto;
+        background: #fff;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    }
+
+    .edit-title {
+        font-size: 24px;
+        font-weight: bold;
+        margin-bottom: 20px;
+    }
+
+    /* Foto */
+    .profile-photo {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid #eee;
+    }
+
+    /* Inputs */
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-group label {
+        font-weight: 600;
+    }
+
+    input, select, textarea {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        font-size: 15px;
+        margin-top: 5px;
+    }
+
+    textarea {
+        min-height: 120px;
+    }
+
+    /* AREA DE TAGS FAVORITAS — NOVA VERSÃO ESTILIZADA */
+    .tags-box {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        padding: 12px;
+        border-radius: 8px;
+        background: #f8f9fa;
+    }
+
+    /* Ocultar checkbox real */
+    .tag-item input {
+        display: none;
+    }
+
+    /* Cada tag como um botão/pílula */
+    .tag-pill {
+        padding: 8px 15px;
+        border-radius: 25px;
+        background: #e9ecef;
+        color: #333;
+        font-weight: 600;
+        cursor: pointer;
+        border: 2px solid transparent;
+        transition: 0.2s;
+        display: inline-block;
+        user-select: none;
+    }
+
+    /* Quando a tag for selecionada */
+    .tag-item input:checked + .tag-pill {
+        background: #FFC107;
+        color: black;
+        border-color: #e0a800;
+    }
+
+    /* Hover */
+    .tag-pill:hover {
+        background: #dedede;
+    }
+
+    /* Botões */
+    .btn-save {
+        background: #FFC107;
+        color: #000;
+        font-weight: bold;
+        padding: 10px 18px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        text-decoration: none;
+    }
+
+    .btn-save:hover {
+        background: #e0a800;
+    }
+
+    .btn-cancel {
+        background: #6c757d;
+        color: #fff;
+        padding: 10px 18px;
+        border-radius: 8px;
+        text-decoration: none;
+        margin-right: 10px;
+    }
+
+    .btn-cancel:hover {
+        background: #5a6268;
+    }
+
+    .buttons-area {
+        margin-top: 25px;
+    }
+</style>
+
+<div class="edit-container">
+
+    <h4 class="edit-title">Editar Perfil</h4>
+
+    <!-- Mensagens -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-info">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <!-- Foto de perfil atual -->
+        <div class="form-group">
+            <h6>Foto de Perfil Atual</h6>
+            {% if user.foto_perfil %}
+                <img src="{{ user.foto_perfil.url }}" class="profile-photo">
             {% else %}
-                <li><a href="{% url 'paginaLogin' %}">Login</a></li>
-                <li><a href="{% url 'registrarUser' %}">Registrar</a></li>
+                <div>[Sem foto de perfil]</div>
             {% endif %}
-        </ul>
-    </div>
-</nav>
+        </div>
 
-<div>
-    <div>
-        <div>
-            <h4>Editar Perfil</h4>
-            
-            <!-- Mensagens -->
-            {% if messages %}
-                {% for message in messages %}
-                    <div>{{ message }}</div>
+        <!-- Nome -->
+        <div class="form-group">
+            <label for="{{ form.first_name.id_for_label }}">{{ form.first_name.label }}</label>
+            {{ form.first_name }}
+            {% if form.first_name.errors %}
+                <small class="text-danger">{{ form.first_name.errors.0 }}</small>
+            {% endif %}
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.last_name.id_for_label }}">{{ form.last_name.label }}</label>
+            {{ form.last_name }}
+            {% if form.last_name.errors %}
+                <small class="text-danger">{{ form.last_name.errors.0 }}</small>
+            {% endif %}
+        </div>
+
+        <!-- Email -->
+        <div class="form-group">
+            <label>{{ form.email.label }}</label>
+            {{ form.email }}
+        </div>
+
+        <!-- Bio -->
+        <div class="form-group">
+            <label>{{ form.bio.label }}</label>
+            {{ form.bio }}
+            <small>Conte um pouco sobre você (máximo 500 caracteres)</small>
+        </div>
+
+        <!-- Contato -->
+        <div class="form-group">
+            <label>{{ form.telefone.label }}</label>
+            {{ form.telefone }}
+        </div>
+
+        <div class="form-group">
+            <label>{{ form.data_nascimento.label }}</label>
+            {{ form.data_nascimento }}
+        </div>
+
+        <!-- Localização -->
+        <div class="form-group">
+            <label>{{ form.cidade.label }}</label>
+            {{ form.cidade }}
+        </div>
+
+        <div class="form-group">
+            <label>{{ form.estado.label }}</label>
+            {{ form.estado }}
+        </div>
+
+        <!-- Foto nova -->
+        <div class="form-group">
+            <label>{{ form.foto_perfil.label }}</label>
+            {{ form.foto_perfil }}
+            <small>Escolha uma nova imagem para seu perfil</small>
+        </div>
+
+        <!-- TAGS FAVORITAS — NOVO LAYOUT -->
+        <div class="form-group">
+            <label>{{ form.tags_favoritas.label }}</label>
+
+            <div class="tags-box">
+                {% for tag in form.tags_favoritas %}
+                    <label class="tag-item">
+                        {{ tag.tag }}
+                        <span class="tag-pill">{{ tag.choice_label }}</span>
+                    </label>
                 {% endfor %}
-            {% endif %}
-
-            <form method="post" enctype="multipart/form-data">
-                {% csrf_token %}
-                
-                <!-- Foto de perfil atual -->
-                <div>
-                    <h6>Foto de Perfil Atual</h6>
-                    {% if user.foto_perfil %}
-                        <img src="{{ user.foto_perfil.url }}" alt="Foto atual">
-                    {% else %}
-                        <div>[Sem foto de perfil]</div>
-                    {% endif %}
-                </div>
-                
-                <!-- Informações pessoais -->
-                <div>
-                    <div>
-                        <label for="{{ form.first_name.id_for_label }}">{{ form.first_name.label }}</label>
-                        {{ form.first_name }}
-                        {% if form.first_name.errors %}
-                            <div>{{ form.first_name.errors.0 }}</div>
-                        {% endif %}
-                    </div>
-                    <div>
-                        <label for="{{ form.last_name.id_for_label }}">{{ form.last_name.label }}</label>
-                        {{ form.last_name }}
-                        {% if form.last_name.errors %}
-                            <div>{{ form.last_name.errors.0 }}</div>
-                        {% endif %}
-                    </div>
-                </div>
-                
-                <div>
-                    <label for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
-                    {{ form.email }}
-                    {% if form.email.errors %}
-                        <div>{{ form.email.errors.0 }}</div>
-                    {% endif %}
-                </div>
-                
-                <div>
-                    <label for="{{ form.bio.id_for_label }}">{{ form.bio.label }}</label>
-                    {{ form.bio }}
-                    <small>Conte um pouco sobre você (máximo 500 caracteres)</small>
-                    {% if form.bio.errors %}
-                        <div>{{ form.bio.errors.0 }}</div>
-                    {% endif %}
-                </div>
-                
-                <!-- Contato -->
-                <div>
-                    <div>
-                        <label for="{{ form.telefone.id_for_label }}">{{ form.telefone.label }}</label>
-                        {{ form.telefone }}
-                        {% if form.telefone.errors %}
-                            <div>{{ form.telefone.errors.0 }}</div>
-                        {% endif %}
-                    </div>
-                    <div>
-                        <label for="{{ form.data_nascimento.id_for_label }}">{{ form.data_nascimento.label }}</label>
-                        {{ form.data_nascimento }}
-                        {% if form.data_nascimento.errors %}
-                            <div>{{ form.data_nascimento.errors.0 }}</div>
-                        {% endif %}
-                    </div>
-                </div>
-                
-                <!-- Localização -->
-                <div>
-                    <div>
-                        <label for="{{ form.cidade.id_for_label }}">{{ form.cidade.label }}</label>
-                        {{ form.cidade }}
-                        {% if form.cidade.errors %}
-                            <div>{{ form.cidade.errors.0 }}</div>
-                        {% endif %}
-                    </div>
-                    <div>
-                        <label for="{{ form.estado.id_for_label }}">{{ form.estado.label }}</label>
-                        {{ form.estado }}
-                        {% if form.estado.errors %}
-                            <div>{{ form.estado.errors.0 }}</div>
-                        {% endif %}
-                    </div>
-                </div>
-                
-                <!-- Nova foto de perfil -->
-                <div>
-                    <label for="{{ form.foto_perfil.id_for_label }}">{{ form.foto_perfil.label }}</label>
-                    {{ form.foto_perfil }}
-                    <small>Escolha uma nova imagem para seu perfil (opcional)</small>
-                    {% if form.foto_perfil.errors %}
-                        <div>{{ form.foto_perfil.errors.0 }}</div>
-                    {% endif %}
-                </div>
-                
-                <!-- Tags favoritas -->
-                <div>
-                    <label>{{ form.tags_favoritas.label }}</label>
-                    <div>
-                        {% for tag in form.tags_favoritas %}
-                            <div>
-                                {{ tag.tag }}
-                                <label for="{{ tag.id_for_label }}">{{ tag.choice_label }}</label>
-                            </div>
-                        {% endfor %}
-                    </div>
-                    {% if form.tags_favoritas.errors %}
-                        <div>{{ form.tags_favoritas.errors.0 }}</div>
-                    {% endif %}
-                    {% if not form.tags_favoritas %}
-                        <p>Nenhuma tag disponível. <a href="/admin/">Adicione tags no painel administrativo</a>.</p>
-                    {% endif %}
-                </div>
-                
-                <!-- Botões -->
-                <div>
-                    <a href="{% url 'perfil' %}">Cancelar</a>
-                    <button type="submit">Salvar Alterações</button>
-                </div>
-            </form>
-            
-            <!-- Dica sobre privacidade -->
-            <div>
-                <h6>Sobre sua privacidade</h6>
-                <small>
-                    Seu e-mail, telefone e data de nascimento são visíveis apenas para você.
-                    Outras informações como nome, biografia, localização e tags favoritas são públicas.
-                </small>
             </div>
         </div>
+
+        <!-- OpenAI API Key -->
+        <div class="form-group">
+            <label for="{{ form.openai_api_key.id_for_label }}">{{ form.openai_api_key.label }}</label>
+            {{ form.openai_api_key }}
+            {% if form.openai_api_key.help_text %}
+                <small class="form-text text-muted">{{ form.openai_api_key.help_text }}</small>
+            {% endif %}
+            {% if user.has_openai_api_key %}
+                <small class="text-success d-block">✓ API Key configurada</small>
+            {% endif %}
+            {% for error in form.openai_api_key.errors %}
+                <small class="text-danger d-block">{{ error }}</small>
+            {% endfor %}
+        </div>
+
+        <!-- Botões -->
+        <div class="buttons-area">
+            <a href="{% url 'perfil' %}" class="btn-cancel">Cancelar</a>
+            <button type="submit" class="btn-save">Salvar Alterações</button>
+        </div>
+    </form>
+
+    <div style="margin-top: 20px;">
+        <h6>Sobre sua privacidade</h6>
+        <small>
+            Seu e-mail, telefone e data de nascimento são visíveis apenas para você.
+            Outras informações como nome, biografia, localização e tags favoritas são públicas.
+        </small>
     </div>
 </div>
+
 {% endblock %}

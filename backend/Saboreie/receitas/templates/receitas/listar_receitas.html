@@ -42,7 +42,7 @@
 
                 {% if receitas %}
                     {% for receita in receitas %}
-                        <div class="card mb-3 shadow-sm">
+                        <div class="card card-hover mb-3">
                             <div class="card-body">
                                 <div class="d-flex justify-content-between align-items-start mb-2">
                                     <h5 class="card-title mb-0">{{ receita.titulo }}</h5>
@@ -59,7 +59,6 @@
                                 <p class="card-text"><strong>Ingredientes:</strong> {{ receita.ingredientes|truncatewords:10 }}</p>
                                 <p class="card-text"><strong>Passos:</strong> {{ receita.passos|truncatewords:10 }}</p>
                                 
-                                <!-- Estatísticas de avaliação -->
                                 <div class="mb-3">
                                     <div class="row">
                                         <div class="col-md-6">
@@ -106,7 +105,6 @@
                                 
                                 <p class="card-text"><small class="text-muted">Criada em: {{ receita.criada_em }}</small></p>
 
-                                <!-- Botões com estilo uniforme -->
                                 <div class="mt-2">
                                     <a href="{% url 'ver_receita' receita.id %}" class="btn btn-warning text-dark fw-bold btn-sm">
                                         <i class="bi bi-eye"></i> Ver Receita Completa
@@ -140,6 +138,23 @@
     </div>
 </div>
 
-<!-- Import do JS do Bootstrap -->
+<!-- HOVER AQUI -->
+<style>
+.card-hover {
+    border-radius: 12px;
+    background: rgba(255,255,255,0.03);
+    transition: 0.25s ease-in-out;
+    border: 1px solid rgba(255,255,255,0.15);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+.card-hover:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.35);
+    border-color: rgba(255,255,255,0.35);
+    background: rgba(255,255,255,0.07);
+}
+</style>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 {% endblock content %}

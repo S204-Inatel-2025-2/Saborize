@@ -11,6 +11,15 @@ class CriacaoUser(UserCreationForm):
 class PerfilForm(forms.ModelForm):
     """Formulário para edição do perfil do usuário"""
     
+    openai_api_key = forms.CharField(
+        required=False,
+        widget=forms.PasswordInput(attrs={
+            'placeholder': 'sk-...'
+        }),
+        label='OpenAI API Key',
+        help_text='Sua chave da API OpenAI para gerar receitas com IA. Será criptografada e armazenada com segurança.'
+    )
+    
     class Meta:
         model = User
         fields = [
@@ -68,3 +77,23 @@ class PerfilForm(forms.ModelForm):
         if User.objects.filter(email=email).exclude(pk=self.instance.pk).exists():
             raise forms.ValidationError('Este e-mail já está sendo usado por outro usuário.')
         return email
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Se o usuário já tem uma API key, mostrar que ela está configurada
+        if self.instance.pk and self.instance.has_openai_api_key():
+            self.fields['openai_api_key'].widget.attrs['placeholder'] = 'API Key configurada - deixe em branco para manter'
+    
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        
+        # Lidar com a API key do OpenAI
+        api_key = self.cleaned_data.get('openai_api_key')
+        if api_key:  # Se uma nova API key foi fornecida
+            user.set_openai_api_key(api_key)
+        
+        if commit:
+            user.save()
+            # Salvar as tags favoritas (many-to-many)
+            self.save_m2m()
+        return user

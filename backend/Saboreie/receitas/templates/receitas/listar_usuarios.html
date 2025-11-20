@@ -43,8 +43,8 @@
                                 <div class="card-body">
                                     <h5 class="card-title fw-bold">{{ usuario.username }}</h5>
                                     <p class="card-text text-muted mb-3">
-                                        {{ usuario.total_receitas }} receita{{ usuario.total_receitas|pluralize:"s" }} pública{{ usuario.total_receitas|pluralize:"s" }}<br>
-                                        {{ usuario.total_seguidores }} seguidor{{ usuario.total_seguidores|pluralize:"es" }}
+                                        {{ usuario.receitas_count }} receita{{ usuario.receitas_count|pluralize:"s" }} pública{{ usuario.receitas_count|pluralize:"s" }}<br>
+                                        {{ usuario.seguidores_count }} seguidor{{ usuario.seguidores_count|pluralize:"es" }}
                                     </p>
 
                                     {% if usuario.ja_seguindo %}

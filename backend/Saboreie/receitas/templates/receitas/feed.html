@@ -4,22 +4,49 @@
 
 {% block content %}
 
-<!-- Configuração do Layout da Navbar -->
+<!-- Estilo da mensagem pulsante e título -->
+<style>
+    .titulo-feed {
+        font-size: 2.4rem;
+        font-weight: 900;
+        text-align: center;
+        margin-bottom: 0.5rem;
+    }
+
+    .mensagem-destaque {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #000000 !important;
+        animation: pulsar 1.6s infinite ease-in-out;
+    }
+
+    @keyframes pulsar {
+        0% { transform: scale(1); opacity: 0.80; }
+        50% { transform: scale(1.07); opacity: 1; }
+        100% { transform: scale(1); opacity: 0.80; }
+    }
+</style>
+
+<!-- NAVBAR -->
 <nav class="navbar navbar-expand-lg navbar-custom">
     <div class="container d-flex align-items-center">
         <a href="javascript:history.back()" class="me-3 text-decoration-none text-light">
             <i class="bi bi-arrow-left fs-4"></i>
         </a>
         <a class="navbar-brand" href="{% url 'feed_receitas' %}">SABORIZE</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
-            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navbarNav" aria-controls="navbarNav"
+                aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
+
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
                 {% if user.is_authenticated %}
                     <li class="nav-item"><a class="nav-link" href="{% url 'listar_receitas' %}">Minhas Receitas</a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'criar_receita' %}">Criar Receita</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'gerador_receitas_ai' %}">Gerador IA</a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'feed_seguidos' %}">Feed dos Seguidos</a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'listar_usuarios' %}">Descobrir Usuários</a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'logout' %}">Logout</a></li>
@@ -32,11 +59,18 @@
     </div>
 </nav>
 
-<!-- Configuração do Layout do Conteúdo principal da página -->
+<!-- CONTEÚDO PRINCIPAL -->
 <div class="container mt-5">
-    <h1 class="text-center mb-4">Feed de Receitas</h1>
 
-    <!-- Filtros de busca -->
+    <!-- TÍTULO PRINCIPAL -->
+    <h1 class="titulo-feed">Feed de Receitas</h1>
+
+    <!-- MENSAGEM PULSANTE ABAIXO DO TÍTULO -->
+    <p class="text-center mensagem-destaque mb-4">
+        🍽️ Saborize - Compartilhe suas receitas favoritas!
+    </p>
+
+    <!-- Filtros -->
     <form method="GET" class="d-flex justify-content-center mb-4 gap-2">
         <input type="text" name="busca" value="{{ busca }}" placeholder="Buscar receitas..." class="form-control w-50">
         <select name="ordem" class="form-select w-auto">
@@ -45,6 +79,7 @@
             {% endfor %}
         </select>
         <button type="submit" class="btn btn-custom">Filtrar</button>
+
         {% if busca %}
             <a href="{% url 'feed_receitas' %}" class="btn btn-secondary">Limpar</a>
         {% endif %}
@@ -60,6 +95,7 @@
                     <h4><a href="{% url 'ver_receita_feed' receita.id %}" class="text-decoration-none text-dark">{{ receita.titulo }}</a></h4>
                     <p><strong>Por:</strong> {{ receita.user.username }} | <strong>Publicada em:</strong> {{ receita.criada_em|date:"d/m/Y H:i" }}</p>
                     <p>{{ receita.descricao|truncatewords:30 }}</p>
+
                     <div class="mb-2">
                         {% if receita.total_avaliacoes > 0 %}
                             <span class="fw-bold">★ {{ receita.media_avaliacoes }}/5</span>
@@ -69,6 +105,7 @@
                         {% endif %}
                         <span> | {{ receita.total_comentarios }} comentário{{ receita.total_comentarios|pluralize:"s" }}</span>
                     </div>
+
                     <div class="d-flex gap-2">
                         <a href="{% url 'ver_receita_feed' receita.id %}" class="btn btn-custom btn-sm">Ver Receita</a>
                         {% if user.is_authenticated %}
@@ -98,7 +135,7 @@
         {% endfor %}
     </div>
 
-    <!-- Divisão de páginas -->
+    <!-- Paginação -->
     {% if receitas.has_other_pages %}
         <nav aria-label="Paginação" class="mt-4">
             <ul class="pagination justify-content-center">
@@ -107,7 +144,11 @@
                         <a class="page-link" href="?page={{ receitas.previous_page_number }}{% if busca %}&busca={{ busca }}{% endif %}{% if ordenacao %}&ordem={{ ordenacao }}{% endif %}">&laquo; Anterior</a>
                     </li>
                 {% endif %}
-                <li class="page-item disabled"><span class="page-link">Página {{ receitas.number }} de {{ receitas.paginator.num_pages }}</span></li>
+
+                <li class="page-item disabled">
+                    <span class="page-link">Página {{ receitas.number }} de {{ receitas.paginator.num_pages }}</span>
+                </li>
+
                 {% if receitas.has_next %}
                     <li class="page-item">
                         <a class="page-link" href="?page={{ receitas.next_page_number }}{% if busca %}&busca={{ busca }}{% endif %}{% if ordenacao %}&ordem={{ ordenacao }}{% endif %}">Próxima &raquo;</a>
@@ -120,11 +161,11 @@
     <!-- Rodapé -->
     <hr>
     <footer class="text-center text-muted py-3">
-        <p>🍽️ Saborize - Compartilhe suas receitas favoritas!</p>
         {% if not user.is_authenticated %}
             <p><a href="{% url 'registrarUser' %}" class="text-warning text-decoration-none">Crie sua conta gratuita</a> para compartilhar suas receitas.</p>
         {% endif %}
     </footer>
+
 </div>
 
 {% endblock content %}
