@@ -223,6 +223,21 @@
             </div>
         </div>
 
+        <!-- OpenAI API Key -->
+        <div class="form-group">
+            <label for="{{ form.openai_api_key.id_for_label }}">{{ form.openai_api_key.label }}</label>
+            {{ form.openai_api_key }}
+            {% if form.openai_api_key.help_text %}
+                <small class="form-text text-muted">{{ form.openai_api_key.help_text }}</small>
+            {% endif %}
+            {% if user.has_openai_api_key %}
+                <small class="text-success d-block">✓ API Key configurada</small>
+            {% endif %}
+            {% for error in form.openai_api_key.errors %}
+                <small class="text-danger d-block">{{ error }}</small>
+            {% endfor %}
+        </div>
+
         <!-- Botões -->
         <div class="buttons-area">
             <a href="{% url 'perfil' %}" class="btn-cancel">Cancelar</a>

@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de Receitas IA - Saborize</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-warning">
+        <div class="container">
+            <a class="navbar-brand text-dark fw-bold" href="{% url 'feed_receitas' %}">SABORIZE</a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link text-dark" href="{% url 'feed_receitas' %}">Feed</a>
+                <a class="nav-link text-dark" href="{% url 'perfil' %}">Perfil</a>
+                <a class="nav-link text-dark" href="{% url 'logout' %}">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <h1>Gerador de Receitas com IA</h1>
+                <p class="text-muted">Use inteligência artificial para criar receitas personalizadas!</p>
+                
+                {% if not user.has_openai_api_key %}
+                    <div class="alert alert-warning">
+                        <strong>Configuração necessária:</strong> 
+                        Para usar este gerador, você precisa configurar sua OpenAI API Key no seu 
+                        <a href="{% url 'editar_perfil' %}" class="alert-link">perfil</a>.
+                        <br><small>Com $5, você pode gerar aproximadamente 2.500 receitas!</small>
+                    </div>
+                {% endif %}
+
+                <!-- Mensagens -->
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <!-- Formulário para gerar receita -->
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Configurações da Receita</h5>
+                            </div>
+                            <div class="card-body">
+                                <form method="POST">
+                                    {% csrf_token %}
+                                    
+                                    <!-- Tags/Tipo de Receita -->
+                                    <div class="mb-3">
+                                        <label class="form-label">Tipo de Receita:</label>
+                                        {% for tag in tags %}
+                                            <div class="form-check">
+                                                <input 
+                                                    class="form-check-input" 
+                                                    type="checkbox" 
+                                                    value="{{ tag.id }}" 
+                                                    name="tags" 
+                                                    id="tag_{{ tag.id }}"
+                                                    {% if tag.id|stringformat:"s" in tags_selecionadas %}checked{% endif %}
+                                                >
+                                                <label class="form-check-label" for="tag_{{ tag.id }}">
+                                                    {{ tag.nome }}
+                                                    {% if tag.descricao %}
+                                                        <small class="text-muted">({{ tag.descricao }})</small>
+                                                    {% endif %}
+                                                </label>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+
+                                    <!-- Tempo de Preparo -->
+                                    <div class="mb-3">
+                                        <label for="tempo_preparo" class="form-label">Tempo de Preparo:</label>
+                                        <select class="form-select" name="tempo_preparo" id="tempo_preparo" required>
+                                            <option value="">Selecione o tempo</option>
+                                            <option value="Até 15 minutos" {% if tempo_preparo == "Até 15 minutos" %}selected{% endif %}>Até 15 minutos</option>
+                                            <option value="15 a 30 minutos" {% if tempo_preparo == "15 a 30 minutos" %}selected{% endif %}>15 a 30 minutos</option>
+                                            <option value="30 a 60 minutos" {% if tempo_preparo == "30 a 60 minutos" %}selected{% endif %}>30 a 60 minutos</option>
+                                            <option value="1 a 2 horas" {% if tempo_preparo == "1 a 2 horas" %}selected{% endif %}>1 a 2 horas</option>
+                                            <option value="Mais de 2 horas" {% if tempo_preparo == "Mais de 2 horas" %}selected{% endif %}>Mais de 2 horas</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Dificuldade -->
+                                    <div class="mb-3">
+                                        <label for="dificuldade" class="form-label">Dificuldade:</label>
+                                        <select class="form-select" name="dificuldade" id="dificuldade" required>
+                                            <option value="">Selecione a dificuldade</option>
+                                            <option value="Muito Fácil" {% if dificuldade == "Muito Fácil" %}selected{% endif %}>Muito Fácil</option>
+                                            <option value="Fácil" {% if dificuldade == "Fácil" %}selected{% endif %}>Fácil</option>
+                                            <option value="Médio" {% if dificuldade == "Médio" %}selected{% endif %}>Médio</option>
+                                            <option value="Difícil" {% if dificuldade == "Difícil" %}selected{% endif %}>Difícil</option>
+                                            <option value="Muito Difícil" {% if dificuldade == "Muito Difícil" %}selected{% endif %}>Muito Difícil</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Observações -->
+                                    <div class="mb-3">
+                                        <label for="observacoes" class="form-label">Observações Especiais:</label>
+                                        <textarea 
+                                            class="form-control" 
+                                            name="observacoes" 
+                                            id="observacoes" 
+                                            rows="3" 
+                                            placeholder="Ex: sem glúten, vegano, low carb, ingredientes específicos..."
+                                        >{{ observacoes }}</textarea>
+                                        <small class="text-muted">Opcional: restrições alimentares, ingredientes preferidos, etc.</small>
+                                    </div>
+
+                                    <button 
+                                        type="submit" 
+                                        class="btn btn-warning text-dark fw-bold w-100"
+                                        {% if not user.has_openai_api_key or usage_count >= 10 %}disabled{% endif %}
+                                    >
+                                        {% if usage_count >= 10 %}
+                                            Limite Atingido (10/10)
+                                        {% else %}
+                                            Gerar Receita com IA ({{ usage_count }}/10)
+                                        {% endif %}
+                                    </button>
+                                    {% if usage_count >= 10 %}
+                                        <small class="text-muted d-block mt-2">Faça login novamente para resetar o contador</small>
+                                    {% endif %}
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Resultado da receita gerada -->
+                    <div class="col-md-6">
+                        {% if receita_gerada %}
+                            <div class="card">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <h5>Receita Gerada</h5>
+                                    <button class="btn btn-sm btn-outline-secondary" onclick="copiarReceita()">
+                                        Copiar Texto
+                                    </button>
+                                </div>
+                                <div class="card-body">
+                                    <div id="receita-content" style="white-space: pre-line; font-family: 'Courier New', monospace;">{{ receita_gerada }}</div>
+                                </div>
+                                <div class="card-footer">
+                                    <small class="text-muted">
+                                        Receita gerada por IA otimizada para baixo custo. 
+                                        Custo estimado: ~$0.002. Sempre verifique ingredientes e métodos.
+                                    </small>
+                                </div>
+                            </div>
+                        {% elif error %}
+                            <div class="card">
+                                <div class="card-body text-center text-muted">
+                                    <p>Ocorreu um erro ao gerar a receita. Tente novamente.</p>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="card">
+                                <div class="card-body text-center text-muted">
+                                    <p>Preencha o formulário e clique em "Gerar Receita com IA" para ver sua receita personalizada aqui.</p>
+                                </div>
+                            </div>
+                        {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function copiarReceita() {
+            const texto = document.getElementById('receita-content').textContent;
+            navigator.clipboard.writeText(texto).then(function() {
+                alert('Receita copiada para a área de transferência!');
+            }, function(err) {
+                console.error('Erro ao copiar: ', err);
+            });
+        }
+    </script>
+</body>
+</html>
