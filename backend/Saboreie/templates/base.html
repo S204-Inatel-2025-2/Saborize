@@ -63,6 +63,13 @@
             color: #fff200;
         }
 
+        /* centralizar e aumentar texto de links específicos */
+        .navbar-custom .nav-link.centered {
+            font-size: 1.15rem;
+            padding: 0.5rem 0.75rem;
+            font-weight: 100;
+        }
+
         /* ============================
             CARDS
         ============================ */
@@ -97,6 +104,47 @@
 <body>
 
     <div class="container-fluid p-0">
+        
+        <!-- NAVBAR -->
+        <nav class="navbar navbar-expand-lg navbar-custom">
+            <div class="container d-flex align-items-center">
+                <a href="javascript:history.back()" class="me-3 text-decoration-none text-light">
+                    <i class="bi bi-arrow-left fs-4"></i>
+                </a>
+                <a class="navbar-brand" href="{% url 'feed_receitas' %}">SABORIZE</a>
+            
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#navbarNav" aria-controls="navbarNav"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+            
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    {% if user.is_authenticated %}
+                        <!-- grupo centralizado -->
+                        <ul class="navbar-nav mx-auto">
+                            <li class="nav-item"><a class="nav-link centered" href="{% url 'criar_receita' %}">Criar Receita</a></li>
+                            <li class="nav-item"><a class="nav-link centered" href="{% url 'feed_receitas' %}">Feed</a></li>
+                            <li class="nav-item"><a class="nav-link centered" href="{% url 'feed_seguidos' %}">Seguindo</a></li>
+                            <li class="nav-item"><a class="nav-link centered" href="{% url 'listar_usuarios' %}">Descobrir Usuários</a></li>
+                        </ul>
+
+                        <!-- itens à direita -->
+                        <ul class="navbar-nav ms-auto">
+                            <li class="nav-item"><a class="nav-link" href="{% url 'listar_receitas' %}">Minhas Receitas</a></li>
+                            <li class="nav-item"><a class="nav-link" href="{% url 'perfil' %}">Meu Perfil</a></li>
+                            <li class="nav-item"><a class="nav-link" href="{% url 'logout' %}">Logout</a></li>
+                        </ul>
+                    {% else %}
+                        <ul class="navbar-nav ms-auto">
+                            <li class="nav-item"><a class="nav-link" href="{% url 'paginaLogin' %}">Login</a></li>
+                            <li class="nav-item"><a class="nav-link" href="{% url 'registrarUser' %}">Registrar</a></li>
+                        </ul>
+                    {% endif %}
+                </div>
+            </div>
+        </nav>
+        <!-- CONTEÚDO PRINCIPAL -->
         {% block content %}
         {% endblock content %}
     </div>

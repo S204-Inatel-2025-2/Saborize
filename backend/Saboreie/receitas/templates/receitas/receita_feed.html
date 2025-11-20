@@ -19,32 +19,6 @@
     .rating-display .star { color: #FFD700; cursor: default; }
 </style>
 
-<!-- Configuração do Layout da Navbar -->
-<nav class="navbar navbar-expand-lg navbar-custom">
-    <div class="container d-flex align-items-center">
-        <a href="javascript:history.back()" class="me-3 text-decoration-none text-light">
-            <i class="bi bi-arrow-left fs-4"></i>
-        </a>
-        <a class="navbar-brand" href="{% url 'feed_receitas' %}">SABORIZE</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
-            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto">
-                {% if request.user.is_authenticated %}
-                    <li><span class="nav-link">Logado como <strong>{{ user.username }}</strong></span></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'listar_receitas' %}">Minhas Receitas</a></li>
-                    <li><a class="nav-link" href="{% url 'logout' %}">Logout</a></li>
-                {% else %}
-                    <li class="nav-item"><a class="nav-link" href="{% url 'paginaLogin' %}">Login</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'registrarUser' %}">Registrar</a></li>
-                {% endif %}
-            </ul>
-        </div>
-    </div>
-</nav>
-
 <div class="container mt-4">
 
     <!-- Informações da receita -->
