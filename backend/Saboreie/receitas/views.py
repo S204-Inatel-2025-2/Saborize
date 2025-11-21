@@ -28,33 +28,38 @@ def listar_tags(request):
 
 @login_required
 def criar_receita(request):
-    form = CriarReceita() 
+    """
+    View para criar uma nova receita
+    """
     if request.method == 'POST':
-        form = CriarReceita(request.POST)
+        form = CriarReceita(request.POST, request.FILES)
         if form.is_valid():
             receita = form.save(commit=False)
             receita.user = request.user
-            receita.save()  
-            form.save_m2m()  # <-- SALVA AS TAGS AQUI
+            receita.save()
+            form.save_m2m()  # salva as tags
             messages.success(request, 'Receita criada com sucesso!')
             return redirect('home')
+    else:
+        form = CriarReceita()
+
     return render(request, 'receitas/criar_receita.html', {'form': form})
 
 
 @login_required
 def editar_receita(request, receita_id):
     receita = get_object_or_404(Receita, id=receita_id, user=request.user)
-    
+
     if request.method == 'POST':
-        form = CriarReceita(request.POST, instance=receita)
+        form = CriarReceita(request.POST, request.FILES, instance=receita)
         if form.is_valid():
             receita = form.save()
-            form.save_m2m()  # <-- salva tags ao editar
+            form.save_m2m()  # salva tags ao editar
             messages.success(request, 'Receita atualizada com sucesso!')
             return redirect('listar_receitas')
     else:
         form = CriarReceita(instance=receita)
-    
+
     context = {
         'form': form,
         'receita': receita,
@@ -449,6 +454,8 @@ def api_feed_receitas(request):
                     'username': receita.user.username
                 },
                 'total_comentarios': receita.total_comentarios,
+                'imagem_url': receita.imagem.url if getattr(receita, 'imagem', None) else None,
+
                 'urls': {
                     'detalhes': f'/receitas/feed/ver/{receita.id}/',
                     'api_comentarios': f'/receitas/api/comentarios/{receita.id}/',

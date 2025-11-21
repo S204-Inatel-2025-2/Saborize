@@ -15,6 +15,13 @@ class Receita(models.Model):
     passos = models.TextField(
         help_text="Descreva os passos para preparar a receita."
     )
+    # Campo para imagem 
+    imagem = models.ImageField(
+        upload_to='receitas/',
+        null=True,
+        blank=True,
+        help_text="Imagem ilustrativa da receita (opcional)."
+    )
     tags = models.ManyToManyField(
         TagsReceita,
         related_name='receitas',
