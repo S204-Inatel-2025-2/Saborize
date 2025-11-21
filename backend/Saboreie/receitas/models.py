@@ -115,3 +115,44 @@ class Seguidor(models.Model):
         from django.core.exceptions import ValidationError
         if self.seguidor == self.seguido:
             raise ValidationError("Um usuário não pode seguir a si mesmo")
+        
+class Notificacao(models.Model):
+    TIPO_FOLLOW = 'follow'
+    TIPOS_NOTIFICACAO = [
+        (TIPO_FOLLOW, 'Novo seguidor'),
+    ]
+
+    destinatario = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='notificacoes_recebidas'
+    )
+    remetente = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        related_name='notificacoes_enviadas',
+        null=True,
+        blank=True,
+        help_text='Usuário que gerou a notificação (ex.: quem seguiu).'
+    )
+    tipo = models.CharField(
+        max_length=20,
+        choices=TIPOS_NOTIFICACAO
+    )
+    mensagem = models.CharField(
+        max_length=255,
+        help_text='Texto curto para exibir na notificação.'
+    )
+    lida = models.BooleanField(
+        default=False,
+        help_text='Se a notificação já foi visualizada.'
+    )
+    criada_em = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-criada_em']
+        verbose_name = 'Notificação'
+        verbose_name_plural = 'Notificações'
+
+    def __str__(self):
+        return f"Notif para {self.destinatario.username}: {self.mensagem[:30]}"
