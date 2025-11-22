@@ -111,7 +111,7 @@
                 <a href="javascript:history.back()" class="me-3 text-decoration-none text-light">
                     <i class="bi bi-arrow-left fs-4"></i>
                 </a>
-                <a class="navbar-brand" href="{% url 'feed_receitas' %}">SABORIZE</a>
+                <a class="navbar-brand" href="{% url 'home' %}">SABORIZE</a>
             
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
                         data-bs-target="#navbarNav" aria-controls="navbarNav"
@@ -127,6 +127,7 @@
                             <li class="nav-item"><a class="nav-link centered" href="{% url 'feed_receitas' %}">Feed</a></li>
                             <li class="nav-item"><a class="nav-link centered" href="{% url 'feed_seguidos' %}">Seguindo</a></li>
                             <li class="nav-item"><a class="nav-link centered" href="{% url 'listar_usuarios' %}">Descobrir Usuários</a></li>
+                            <li class="nav-item"><a class="nav-link centered" href="{% url 'gerador_receitas_ai' %}">Gerador IA</a></li>
                         </ul>
 
                         <!-- itens à direita -->

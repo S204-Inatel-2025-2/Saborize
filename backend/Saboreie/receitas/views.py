@@ -12,7 +12,7 @@ import openai
 from django.conf import settings
 
 from .forms import ReceitaForm as CriarReceita
-from .models import Receita, Comentario, Avaliacao, Seguidor
+from .models import Receita, Comentario, Avaliacao, Seguidor, Notificacao
 from autenticacao.models import User, TagsReceita
 from autenticacao.models import TagsReceita
 from django.http import JsonResponse
@@ -28,38 +28,44 @@ def listar_tags(request):
 
 @login_required
 def criar_receita(request):
-    form = CriarReceita() 
+    """
+    View para criar uma nova receita
+    """
     if request.method == 'POST':
-        form = CriarReceita(request.POST)
+        form = CriarReceita(request.POST, request.FILES)
         if form.is_valid():
             receita = form.save(commit=False)
             receita.user = request.user
-            receita.save()  
-            form.save_m2m()  # <-- SALVA AS TAGS AQUI
+            receita.save()
+            form.save_m2m()  # salva as tags
             messages.success(request, 'Receita criada com sucesso!')
             return redirect('home')
+    else:
+        form = CriarReceita()
+
     return render(request, 'receitas/criar_receita.html', {'form': form})
 
 
 @login_required
 def editar_receita(request, receita_id):
     receita = get_object_or_404(Receita, id=receita_id, user=request.user)
-    
+
     if request.method == 'POST':
-        form = CriarReceita(request.POST, instance=receita)
+        form = CriarReceita(request.POST, request.FILES, instance=receita)
         if form.is_valid():
-            receita = form.save()
-            form.save_m2m()  # <-- salva tags ao editar
+            receita = form.save()   # commit normal é suficiente
             messages.success(request, 'Receita atualizada com sucesso!')
             return redirect('listar_receitas')
+
     else:
         form = CriarReceita(instance=receita)
-    
+
     context = {
         'form': form,
         'receita': receita,
         'editing': True
     }
+
     return render(request, 'receitas/criar_receita.html', context)
 
 
@@ -449,6 +455,8 @@ def api_feed_receitas(request):
                     'username': receita.user.username
                 },
                 'total_comentarios': receita.total_comentarios,
+                'imagem_url': receita.imagem.url if getattr(receita, 'imagem', None) else None,
+
                 'urls': {
                     'detalhes': f'/receitas/feed/ver/{receita.id}/',
                     'api_comentarios': f'/receitas/api/comentarios/{receita.id}/',
@@ -663,6 +671,15 @@ def seguir_usuario(request, user_id):
         )
         
         if created:
+            # Cria notificação para o usuriu
+            mensagem = f'{request.user.username} começou a seguir você.'
+            Notificacao.objects.create(
+                destinatario=usuario_a_seguir,
+                remetente=request.user,
+                tipo=Notificacao.TIPO_FOLLOW,
+                mensagem=mensagem
+            )
+
             return JsonResponse({
                 'success': True,
                 'message': f'Você agora está seguindo {usuario_a_seguir.username}!',
@@ -682,6 +699,92 @@ def seguir_usuario(request, user_id):
             'success': False,
             'error': f'Erro interno do servidor: {str(e)}'
         }, status=500)
+
+@login_required
+@require_http_methods(["GET"])
+def api_listar_notificacoes(request):
+    """
+    Lista notificações do usuário logado em JSON.
+    
+    Parâmetros opcionais:
+    - ?apenas_nao_lidas=1 -> retorna só não lidas
+    - ?limit=20 -> limita quantidade
+    """
+    try:
+        apenas_nao_lidas = request.GET.get('apenas_nao_lidas') in ['1', 'true', 'True']
+        limit = int(request.GET.get('limit', 50))
+        limit = min(limit, 100)  # limite máximo por segurança
+
+        qs = Notificacao.objects.filter(destinatario=request.user)
+        if apenas_nao_lidas:
+            qs = qs.filter(lida=False)
+
+        qs = qs.order_by('-criada_em')[:limit]
+
+        notificacoes_data = []
+        for notif in qs:
+            notificacoes_data.append({
+                'id': notif.id,
+                'tipo': notif.tipo,
+                'mensagem': notif.mensagem,
+                'lida': notif.lida,
+                'criada_em': notif.criada_em.isoformat(),
+                'remetente': {
+                    'id': notif.remetente.id,
+                    'username': notif.remetente.username,
+                } if notif.remetente else None
+            })
+
+        return JsonResponse({
+            'success': True,
+            'notificacoes': notificacoes_data,
+            'total': len(notificacoes_data)
+        })
+    except Exception as e:
+        import traceback
+        print(f"Erro ao listar notificações: {str(e)}")
+        print(traceback.format_exc())
+        return JsonResponse({
+            'success': False,
+            'error': 'Erro interno do servidor'
+        }, status=500)
+
+
+@login_required
+@require_http_methods(["POST"])
+def api_marcar_notificacao_como_lida(request, notificacao_id):
+    """
+    Marca uma notificação do usuário logado como lida.
+    """
+    try:
+        notif = get_object_or_404(
+            Notificacao,
+            id=notificacao_id,
+            destinatario=request.user
+        )
+
+        if not notif.lida:
+            notif.lida = True
+            notif.save()
+
+        return JsonResponse({
+            'success': True,
+            'message': 'Notificação marcada como lida',
+            'notificacao': {
+                'id': notif.id,
+                'lida': notif.lida
+            }
+        })
+    except Exception as e:
+        import traceback
+        print(f"Erro ao marcar notificação como lida: {str(e)}")
+        print(traceback.format_exc())
+        return JsonResponse({
+            'success': False,
+            'error': 'Erro interno do servidor'
+        }, status=500)
+
+
 
 
 @login_required
