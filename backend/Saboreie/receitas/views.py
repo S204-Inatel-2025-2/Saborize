@@ -53,10 +53,10 @@ def editar_receita(request, receita_id):
     if request.method == 'POST':
         form = CriarReceita(request.POST, request.FILES, instance=receita)
         if form.is_valid():
-            receita = form.save()
-            form.save_m2m()  # salva tags ao editar
+            receita = form.save()   # commit normal é suficiente
             messages.success(request, 'Receita atualizada com sucesso!')
             return redirect('listar_receitas')
+
     else:
         form = CriarReceita(instance=receita)
 
@@ -65,6 +65,7 @@ def editar_receita(request, receita_id):
         'receita': receita,
         'editing': True
     }
+
     return render(request, 'receitas/criar_receita.html', context)
 
 

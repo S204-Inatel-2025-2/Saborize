@@ -25,6 +25,17 @@
         50% { transform: scale(1.07); opacity: 1; }
         100% { transform: scale(1); opacity: 0.80; }
     }
+
+    /* ESTILO DA IMAGEM NO CARD */
+    .receita-img {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        border-radius: 12px;
+        margin-bottom: 12px;
+        background: #f2f2f2;
+        box-shadow: 0px 2px 8px rgba(0,0,0,0.15);
+    }
 </style>
 
 <!-- CONTEÚDO PRINCIPAL -->
@@ -60,8 +71,24 @@
         {% for receita in receitas %}
             <div class="col-md-6">
                 <div class="card card-custom p-3">
-                    <h4><a href="{% url 'ver_receita_feed' receita.id %}" class="text-decoration-none text-dark">{{ receita.titulo }}</a></h4>
-                    <p><strong>Por:</strong> {{ receita.user.username }} | <strong>Publicada em:</strong> {{ receita.criada_em|date:"d/m/Y H:i" }}</p>
+
+                    <!-- IMAGEM DA RECEITA -->
+                    {% if receita.imagem %}
+                        <img src="{{ receita.imagem.url }}" alt="Foto da receita" class="receita-img">
+                    {% else %}
+                        <img src="/static/img/sem_foto.png" alt="Sem foto" class="receita-img">
+                    {% endif %}
+
+                    <h4>
+                        <a href="{% url 'ver_receita_feed' receita.id %}" class="text-decoration-none text-dark">
+                            {{ receita.titulo }}
+                        </a>
+                    </h4>
+
+                    <p><strong>Por:</strong> {{ receita.user.username }} | 
+                       <strong>Publicada em:</strong> {{ receita.criada_em|date:"d/m/Y H:i" }}
+                    </p>
+
                     <p>{{ receita.descricao|truncatewords:30 }}</p>
 
                     <div class="mb-2">
