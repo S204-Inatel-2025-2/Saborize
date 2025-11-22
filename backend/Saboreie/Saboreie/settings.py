@@ -11,8 +11,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 # Quick-start development settings - unsuitable for production
+
 SECRET_KEY = 'django-insecure-5*t@y9hf#3kjf1lz4#@!yi@4$qftf1#t3-5!otqbhf)df#u=ni'
-DEBUG = True
+
+DEBUG = False   # ❗ Render é produção — deixe False
+
 ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
@@ -36,8 +39,14 @@ INSTALLED_APPS = [
 
 AUTH_USER_MODEL = 'autenticacao.User'
 
+
+# -------------------------------------------------
+# MIDDLEWARE (com WhiteNoise)
+# -------------------------------------------------
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # ✔ Necessário para arquivos estáticos no Render!
+
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -45,6 +54,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
 
 ROOT_URLCONF = 'Saboreie.urls'
 
@@ -68,7 +78,9 @@ TEMPLATES = [
 WSGI_APPLICATION = 'Saboreie.wsgi.application'
 
 
-# Database
+# -------------------------------------------------
+# DATABASE
+# -------------------------------------------------
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -79,18 +91,10 @@ DATABASES = {
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
 
@@ -101,27 +105,36 @@ USE_I18N = True
 USE_TZ = True
 
 
-# ⚠️ STATIC FILES CONFIG ⚠️
+# -------------------------------------------------
+# STATIC FILES (css, js, imagens)
 # -------------------------------------------------
 
 STATIC_URL = '/static/'
 
-# Pasta onde você vai colocar css, js e imagens do projeto
+# 👇 Sua estrutura real:
+# backend/Saboreie/Saboreie/settings.py
+# backend/Saboreie/static/
+
 STATICFILES_DIRS = [
-    BASE_DIR / 'static',
+    BASE_DIR / "static",   # pasta static ao lado do manage.py
 ]
 
-# Pasta para onde o collectstatic envia os arquivos (deploy)
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
+# WhiteNoise storage
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
-# MEDIA (uploads dos usuários)
+
+# -------------------------------------------------
+# MEDIA (uploads do usuário)
+# -------------------------------------------------
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
 
 # Login configuration
 LOGIN_URL = '/login/'
