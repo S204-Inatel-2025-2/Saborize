@@ -13,7 +13,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 SECRET_KEY = 'django-insecure-5*t@y9hf#3kjf1lz4#@!yi@4$qftf1#t3-5!otqbhf)df#u=ni'
 DEBUG = True
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    "localhost",
+    "127.0.0.1",
+    "saborize-3.onrender.com"
+]
 
 
 # Application definition
