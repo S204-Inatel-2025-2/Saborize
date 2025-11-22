@@ -6,10 +6,31 @@
 
 <!-- CSS DOS CARDS DE RECEITA -->
 <style>
+/* Imagem pequena à esquerda (para os cards do bloco "Minhas Receitas") */
+.receita-img-small {
+    width: 90px;
+    height: 90px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-right: 15px;
+    box-shadow: 0px 2px 6px rgba(0,0,0,0.15);
+    background: #f2f2f2;
+}
+
+/* Estilo dos cards do perfil */
 .card-receita {
     transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
     border: 1px solid rgba(0, 0, 0, 0.3) !important;
     box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.25);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.card-receita .card-body {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
 }
 
 .card-receita:hover {
@@ -17,6 +38,26 @@
     box-shadow: 0px 6px 16px rgba(0, 0, 0, 0.45);
     border-color: rgba(0, 0, 0, 0.6) !important;
     background: rgba(255, 255, 255, 0.05);
+}
+
+/* Espaçamento do conteúdo interno (linha com imagem e texto) */
+.card-receita .receita-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+/* Ajuste para o conteúdo textual ficar com overflow controlado */
+.card-receita .receita-meta {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+/* Botões embaixo alinhados */
+.card-receita .card-actions {
+    margin-top: auto;
+    display: flex;
+    gap: 8px;
 }
 </style>
 
@@ -152,34 +193,52 @@
                 {% for receita in receitas_recentes %}
                     <div class="col-md-4">
 
-                        <!-- NOVO CARD COM HOVER -->
+                        <!-- NOVO CARD COM IMAGEM PEQUENA À ESQUERDA -->
                         <div class="card-receita rounded p-3 h-100">
+                            <div class="card-body">
 
-                            <h5 class="fw-bold">{{ receita.titulo }}</h5>
+                                <div class="receita-row mb-2">
+                                    <!-- IMAGEM PEQUENA -->
+                                    {% if receita.imagem %}
+                                        <img src="{{ receita.imagem.url }}" alt="Foto da receita" class="receita-img-small">
+                                    {% else %}
+                                        <img src="/static/img/sem_foto.png" alt="Sem foto" class="receita-img-small">
+                                    {% endif %}
 
-                            <!-- TAGS DA RECEITA -->
-                            <div class="mb-2">
-                                {% for tag in receita.tags.all %}
-                                    <span class="badge bg-warning text-dark">{{ tag.nome }}</span>
-                                {% empty %}
-                                    <span class="text-muted">Sem categoria</span>
-                                {% endfor %}
+                                    <!-- META -->
+                                    <div class="receita-meta">
+                                        <h5 class="fw-bold mb-1" style="margin:0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                            {{ receita.titulo }}
+                                        </h5>
+
+                                        <div class="mb-2">
+                                            {% for tag in receita.tags.all %}
+                                                <span class="badge bg-warning text-dark">{{ tag.nome }}</span>
+                                            {% empty %}
+                                                <span class="text-muted">Sem categoria</span>
+                                            {% endfor %}
+                                        </div>
+
+                                        <p class="mb-1" style="margin:0; color: #666;">
+                                            {{ receita.descricao|truncatewords:10 }}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="text-muted">{{ receita.criada_em|date:"d/m/Y" }}</span>
+                                    {% if receita.media_avaliacoes > 0 %}
+                                        <span class="fw-bold">★ {{ receita.media_avaliacoes }}/5</span>
+                                    {% endif %}
+                                </div>
+
+                                <div class="card-actions">
+                                    <a href="{% url 'ver_receita' receita.id %}" class="btn btn-custom btn-sm w-100 fw-bold">
+                                        Ver Receita
+                                    </a>
+                                </div>
+
                             </div>
-
-                            <p>{{ receita.descricao|truncatewords:15 }}</p>
-
-                            <div class="d-flex justify-content-between">
-                                <span class="text-muted">{{ receita.criada_em|date:"d/m/Y" }}</span>
-
-                                {% if receita.media_avaliacoes > 0 %}
-                                    <span class="fw-bold">★ {{ receita.media_avaliacoes }}/5</span>
-                                {% endif %}
-                            </div>
-
-                            <a href="{% url 'ver_receita' receita.id %}"
-                               class="btn btn-custom btn-sm mt-3 w-100 fw-bold">
-                                Ver Receita
-                            </a>
                         </div>
 
                     </div>
@@ -213,10 +272,9 @@
 
 </div>
 
-<!-- SCRIPT DO BOTÃO SEGUIR -->
+<!-- SCRIPT DO BOTÃO SEGUIR (apenas UI local) -->
 <script>
 function toggleSeguirPerfil(btn) {
-
     const usuarioId = btn.getAttribute("data-user-id");
 
     if (btn.classList.contains("btn-secondary")) {

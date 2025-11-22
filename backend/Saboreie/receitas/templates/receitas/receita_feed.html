@@ -17,20 +17,40 @@
     .star:hover { color: #FFD700; }
     .star.filled { color: #FFD700; }
     .rating-display .star { color: #FFD700; cursor: default; }
+
+    /* Imagem da receita no topo do card */
+    .receita-img-top {
+        width: 100%;
+        height: 280px;
+        object-fit: cover;
+        border-radius: 14px 14px 0 0;
+        background: #f2f2f2;
+    }
 </style>
 
 <div class="container mt-4">
 
     <!-- Informações da receita -->
     <div class="card card-custom mb-4">
+
+        <!-- IMAGEM NO TOPO DO CARD -->
+        {% if receita.imagem %}
+            <img src="{{ receita.imagem.url }}" alt="Foto da receita" class="card-img-top receita-img-top">
+        {% else %}
+            <img src="/static/img/sem_foto.png" alt="Sem foto" class="card-img-top receita-img-top">
+        {% endif %}
+
         <div class="card-body">
             <h1 class="card-title">{{ receita.titulo }}</h1>
+
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <div>
-                    <p class="mb-0"><strong>Autor:</strong> {{ receita.user.username }} | 
+                    <p class="mb-0">
+                        <strong>Autor:</strong> {{ receita.user.username }} |
                         <strong>Publicada em:</strong> {{ receita.criada_em|date:"d/m/Y H:i" }}
                     </p>
                 </div>
+                
                 {% if user.is_authenticated and user != receita.user %}
                     <div>
                         <button id="seguir-btn" 
@@ -43,6 +63,7 @@
                     </div>
                 {% endif %}
             </div>
+
             {% if receita.atualizada_em != receita.criada_em %}
                 <p><strong>Última atualização:</strong> {{ receita.atualizada_em|date:"d/m/Y H:i" }}</p>
             {% endif %}
@@ -81,7 +102,10 @@
             {% elif user == receita.user %}
                 <p><em>Você não pode avaliar sua própria receita.</em></p>
             {% else %}
-                <p><a href="{% url 'paginaLogin' %}?next={{ request.get_full_path }}">Faça login</a> para avaliar esta receita.</p>
+                <p>
+                    <a href="{% url 'paginaLogin' %}?next={{ request.get_full_path }}">Faça login</a> 
+                    para avaliar esta receita.
+                </p>
             {% endif %}
         </div>
     </div>
@@ -94,15 +118,19 @@
             {% if user.is_authenticated %}
                 <a href="{% url 'fazer_comentario' receita.id %}" class="btn btn-custom mb-3">Comentar nesta receita</a>
             {% else %}
-                <p><strong>Quer comentar?</strong> 
-                    <a href="{% url 'paginaLogin' %}?next={{ request.get_full_path }}">Faça login</a> ou 
-                    <a href="{% url 'registrarUser' %}?next={{ request.get_full_path }}">registre-se</a> para participar da conversa!
+                <p>
+                    <strong>Quer comentar?</strong>
+                    <a href="{% url 'paginaLogin' %}?next={{ request.get_full_path }}">Faça login</a>
+                    ou 
+                    <a href="{% url 'registrarUser' %}?next={{ request.get_full_path }}">registre-se</a>
+                    para participar da conversa!
                 </p>
             {% endif %}
 
             {% for comentario in comentarios %}
                 <div class="border p-2 mb-2 rounded">
-                    <div><strong>{{ comentario.usuario.username }}</strong> - {{ comentario.criado_em|date:"d/m/Y H:i" }} 
+                    <div>
+                        <strong>{{ comentario.usuario.username }}</strong> - {{ comentario.criado_em|date:"d/m/Y H:i" }}
                         {% if comentario.atualizado_em != comentario.criado_em %}
                             <em>(editado em {{ comentario.atualizado_em|date:"d/m/Y H:i" }})</em>
                         {% endif %}
@@ -118,7 +146,6 @@
 </div>
 
 <script>
-    // Obter o token CSRF
     function getCookie(name) {
         let cookieValue = null;
         if (document.cookie && document.cookie !== '') {
@@ -133,7 +160,7 @@
         }
         return cookieValue;
     }
-    
+
     const csrftoken = getCookie('csrftoken');
     let isFollowing = false;
 
@@ -167,11 +194,9 @@
         .then(data => {
             if (data.success) {
                 atualizarBotaoSeguir(data.action === 'seguindo');
-            } else {
-                console.error('Erro:', data.error);
             }
         })
-        .catch(error => console.error('Erro ao seguir/parar de seguir:', error));
+        .catch(error => console.error('Erro:', error));
     }
 
     document.addEventListener('DOMContentLoaded', function() {
