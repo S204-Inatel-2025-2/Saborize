@@ -201,7 +201,108 @@
 
     document.addEventListener('DOMContentLoaded', function() {
         verificarSeguindo();
+        
+        // Inicializar sistema de avaliação
+        {% if user.is_authenticated and user != receita.user %}
+        initRatingSystem();
+        carregarAvaliacaoUsuario();
+        {% endif %}
     });
+
+    // Sistema de Avaliação
+    {% if user.is_authenticated and user != receita.user %}
+    let userRating = 0;
+
+    function initRatingSystem() {
+        const stars = document.querySelectorAll('#stars-container .star');
+        
+        stars.forEach(star => {
+            // Hover effect
+            star.addEventListener('mouseenter', function() {
+                const rating = parseInt(this.getAttribute('data-rating'));
+                highlightStars(rating);
+            });
+            
+            // Click event
+            star.addEventListener('click', function() {
+                const rating = parseInt(this.getAttribute('data-rating'));
+                avaliarReceita(rating);
+            });
+        });
+        
+        // Reset stars on container leave
+        const container = document.getElementById('stars-container');
+        container.addEventListener('mouseleave', function() {
+            highlightStars(userRating);
+        });
+    }
+
+    function highlightStars(rating) {
+        const stars = document.querySelectorAll('#stars-container .star');
+        stars.forEach((star, index) => {
+            if (index < rating) {
+                star.classList.add('filled');
+            } else {
+                star.classList.remove('filled');
+            }
+        });
+    }
+
+    function carregarAvaliacaoUsuario() {
+        fetch(`/receitas/api/avaliacoes/{{ receita.id }}/`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.user_avaliacao && data.user_avaliacao.nota) {
+                    userRating = data.user_avaliacao.nota;
+                    highlightStars(userRating);
+                    document.getElementById('avaliacao-message').innerHTML = 
+                        `<span class="text-success">Você avaliou com ${userRating} estrelas</span>`;
+                }
+            })
+            .catch(error => console.error('Erro ao carregar avaliação:', error));
+    }
+
+    function avaliarReceita(nota) {
+        const messageDiv = document.getElementById('avaliacao-message');
+        
+        fetch(`/receitas/api/avaliacao/criar/{{ receita.id }}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            },
+            body: JSON.stringify({ nota: nota })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                userRating = nota;
+                highlightStars(nota);
+                
+                // Atualizar a exibição da média
+                const mediaElement = document.querySelector('.card-custom p strong');
+                if (mediaElement) {
+                    mediaElement.parentElement.innerHTML = 
+                        `<strong>★ ${data.receita_stats.media_avaliacoes}/5</strong> ` +
+                        `(${data.receita_stats.total_avaliacoes} avaliação${data.receita_stats.total_avaliacoes > 1 ? 'ões' : ''})`;
+                }
+                
+                messageDiv.innerHTML = `<span class="text-success">${data.message}</span>`;
+                
+                // Limpar mensagem após 3 segundos
+                setTimeout(() => {
+                    messageDiv.innerHTML = `<span class="text-success">Você avaliou com ${nota} estrelas</span>`;
+                }, 3000);
+            } else {
+                messageDiv.innerHTML = `<span class="text-danger">${data.error}</span>`;
+            }
+        })
+        .catch(error => {
+            console.error('Erro ao avaliar:', error);
+            messageDiv.innerHTML = '<span class="text-danger">Erro ao enviar avaliação</span>';
+        });
+    }
+    {% endif %}
 </script>
 
 {% endblock content %}
