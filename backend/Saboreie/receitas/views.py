@@ -831,9 +831,9 @@ def feed_seguidos(request):
     Feed de receitas apenas dos usuários que o usuário atual segue
     """
     # Buscar IDs dos usuários que o usuário atual segue
-    usuarios_seguidos_ids = Seguidor.objects.filter(
+    usuarios_seguidos_ids = list(Seguidor.objects.filter(
         seguidor=request.user
-    ).values_list('seguido_id', flat=True)
+    ).values_list('seguido_id', flat=True))
     
     # Buscar receitas públicas apenas dos usuários seguidos
     receitas = Receita.objects.filter(

@@ -1,54 +1,107 @@
 {% extends 'base.html' %}
 
-{% block title %}Descobrir Usuários - Saborize{% endblock title %}
+{% block title %}Feed de Seguidos - Saborize{% endblock title %}
 
 {% block content %}
 
 <div class="container mt-4">
-    <h1 class="mb-3">Descobrir Usuários</h1>
-    <p>Encontre novos criadores de receitas para seguir e acompanhar suas publicações.</p>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="mb-2">Feed de Seguidos</h1>
+            <p class="text-muted">Receitas de pessoas que você segue ({{ total_seguindo }} usuário{{ total_seguindo|pluralize:"s" }})</p>
+        </div>
+        <div>
+            <a href="{% url 'listar_usuarios' %}" class="btn btn-custom">
+                <i class="bi bi-people"></i> Descobrir Usuários
+            </a>
+        </div>
+    </div>
 
-    {% if usuarios %}
+    {% if receitas %}
         <div class="row">
-            {% for usuario in usuarios %}
+            {% for receita in receitas %}
                 <div class="col-md-6 col-lg-4 mb-4">
                     <div class="card card-custom shadow-sm h-100">
-                        <div class="card-body text-center d-flex flex-column justify-content-between">
-                            <div>
-                                <h5 class="fw-bold mb-1">{{ usuario.username }}</h5>
-                                {% if usuario.receitas_count %}
-                                    <p class="text-muted mb-2">{{ usuario.receitas_count }} receita{{ usuario.receitas_count|pluralize:"s" }}</p>
-                                {% else %}
-                                    <p class="text-muted mb-2">Nenhuma receita publicada ainda</p>
-                                {% endif %}
+                        {% if receita.imagem %}
+                            <img src="{{ receita.imagem.url }}" 
+                                 alt="{{ receita.titulo }}" 
+                                 class="card-img-top"
+                                 style="height: 200px; object-fit: cover;">
+                        {% else %}
+                            <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center" 
+                                 style="height: 200px;">
+                                <i class="bi bi-image text-white" style="font-size: 3rem;"></i>
                             </div>
-
-                            <div class="mt-3">
-                                {% if usuario.is_seguido %}
-                                    <!-- Botão "Seguindo" agora usa btn-custom (com opacidade padrão de disabled) -->
-                                    <button class="btn btn-custom fw-bold btn-sm w-100" disabled>
-                                        <i class="bi bi-check2"></i> Seguindo
-                                    </button>
+                        {% endif %}
+                        
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title fw-bold mb-2">{{ receita.titulo }}</h5>
+                            
+                            <p class="text-muted small mb-2">
+                                <i class="bi bi-person-circle"></i> {{ receita.user.username }}
+                            </p>
+                            
+                            <p class="card-text flex-grow-1">
+                                {{ receita.descricao|truncatewords:20 }}
+                            </p>
+                            
+                            <div class="mb-3">
+                                {% if receita.total_avaliacoes > 0 %}
+                                    <div class="d-flex align-items-center">
+                                        <span class="text-warning me-2">
+                                            {% for i in "12345" %}
+                                                {% if forloop.counter <= receita.media_avaliacoes|floatformat:0|add:0 %}
+                                                    ★
+                                                {% else %}
+                                                    ☆
+                                                {% endif %}
+                                            {% endfor %}
+                                        </span>
+                                        <span class="text-muted small">
+                                            {{ receita.media_avaliacoes }} ({{ receita.total_avaliacoes }})
+                                        </span>
+                                    </div>
                                 {% else %}
-                                    <form method="post" action="{% url 'seguir_usuario' usuario.id %}">
-                                        {% csrf_token %}
-                                        <!-- Botão "Seguir" agora usa btn-custom -->
-                                        <button type="submit" class="btn btn-custom fw-bold btn-sm w-100">
-                                            <i class="bi bi-person-plus"></i> Seguir
-                                        </button>
-                                    </form>
+                                    <span class="text-muted small">
+                                        <i class="bi bi-star"></i> Sem avaliações
+                                    </span>
                                 {% endif %}
+                                
+                                <span class="text-muted small ms-3">
+                                    <i class="bi bi-chat"></i> {{ receita.total_comentarios }} comentário{{ receita.total_comentarios|pluralize:"s" }}
+                                </span>
                             </div>
+                            
+                            <div class="d-flex gap-2">
+                                <a href="{% url 'ver_receita_feed' receita.id %}" class="btn btn-custom btn-sm flex-grow-1">
+                                    Ver Receita
+                                </a>
+                            </div>
+                            
+                            <small class="text-muted mt-2">
+                                <i class="bi bi-clock"></i> {{ receita.criada_em|date:"d/m/Y" }}
+                            </small>
                         </div>
                     </div>
                 </div>
             {% endfor %}
         </div>
     {% else %}
-        <div class="alert alert-secondary shadow-sm">
-            <h4 class="fw-bold">Nenhum usuário encontrado</h4>
-            <p>Atualmente não há outros usuários cadastrados para seguir.</p>
-            <a href="{% url 'feed_receitas' %}" class="btn btn-custom fw-bold btn-force-black">Voltar ao Feed Público</a>
+        <div class="alert alert-info shadow-sm">
+            <h4 class="fw-bold">
+                <i class="bi bi-info-circle"></i> Nenhuma receita encontrada
+            </h4>
+            {% if total_seguindo == 0 %}
+                <p class="mb-3">Você ainda não está seguindo ninguém! Descubra criadores de receitas para seguir.</p>
+                <a href="{% url 'listar_usuarios' %}" class="btn btn-custom">
+                    <i class="bi bi-people"></i> Descobrir Usuários
+                </a>
+            {% else %}
+                <p class="mb-3">Os usuários que você segue ainda não publicaram receitas públicas.</p>
+                <a href="{% url 'feed_receitas' %}" class="btn btn-custom">
+                    <i class="bi bi-grid"></i> Ver Feed Público
+                </a>
+            {% endif %}
         </div>
     {% endif %}
 </div>
@@ -66,23 +119,27 @@
         border-color: #FFD700; 
         transform: scale(1.02);
     }
-    
-    .btn-custom:disabled {
-        background-color: #f0ad4e;
-        opacity: 0.65;
-        color: #000 !important;
-        border: 2px solid #FFD700; 
-    }
 
     .card-custom {
-        border-radius: 10px;
+        border-radius: 15px;
         transition: transform 0.2s ease;
+        border: 1px solid #dee2e6;
     }
     .card-custom:hover {
-        transform: scale(1.02);
+        transform: translateY(-5px);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.2) !important;
     }
 
-    /* Força textos do card a ficarem brancos no Dark Mode */
+    .card-img-top {
+        border-radius: 15px 15px 0 0;
+    }
+
+    /* Dark Mode */
+    body.dark .card-custom {
+        background-color: #2c2c2c;
+        border-color: #444;
+    }
+
     body.dark .card-custom h1,
     body.dark .card-custom h5,
     body.dark .card-custom h4,
@@ -93,16 +150,20 @@
         color: #ffffff !important;
     }
 
-    /* Garante que ícones DENTRO dos botões mantenham a cor do botão (preto), e não virem brancos */
     body.dark .btn-custom i {
         color: inherit !important;
     }
     
-    /* Ajuste para o alert no dark mode */
-    body.dark .alert-secondary {
+    body.dark .alert-info {
         background-color: #2c2c2c;
         color: #fff;
-        border-color: #444;
+        border-color: #17a2b8;
+    }
+
+    /* Ícones de Bootstrap */
+    .bi {
+        vertical-align: middle;
     }
 </style>
+
 {% endblock content %}
