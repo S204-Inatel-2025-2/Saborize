@@ -23,6 +23,14 @@
         padding-left: 10px;
     }
 
+    .section-subtitle {
+        font-weight: bold;
+        font-size: 1.0rem;
+        color: #000000;
+        margin-bottom: 5px;
+        padding-left: 10px;
+    }
+
     /* Preview quadrado bonito */
     .preview-wrapper {
         width: 220px;
@@ -66,6 +74,19 @@
         background: red;
         transform: scale(1.1);
     }
+
+    /* Reforça a regra especificamente quando o modo dark está ativo */
+    body.dark #id_tags {
+        color: #000000 !important;
+        background-color: #fff9e6 !important;
+    }
+
+    /* Garante que a regra vença o Dark Mode global */
+    body.dark #id_imagem {
+        color: #000000 !important;
+        background-color: #fff9e6 !important;
+    }
+
 </style>
 
 <div class="container mt-5">
@@ -92,12 +113,14 @@
                         <div class="section-title">📌 Informações principais</div>
 
                         <div class="mb-3">
-                            <label class="form-label">Título</label>
+                            <div class ="section-subtitle"> Título: </div>
+                            <label class="form-label"></label>
                             {{ form.titulo }}
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">Descrição</label>
+                            <div class ="section-subtitle"> Descrição: </div>
+                            <label class="form-label"></label>
                             {{ form.descricao }}
                         </div>
                     </div>
