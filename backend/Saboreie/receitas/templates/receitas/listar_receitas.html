@@ -30,6 +30,37 @@
         border-color: rgba(255,255,255,0.35);
         background: rgba(255,255,255,0.07);
     }
+
+    /* =========================================
+       REGRAS PARA O MODO DARK
+       ========================================= */
+    
+    /* Força textos do card a ficarem brancos */
+    body.dark .card-custom h1,
+    body.dark .card-custom h5,
+    body.dark .card-custom p,
+    body.dark .card-custom strong,
+    body.dark .card-custom small,
+    body.dark .card-custom .text-muted {
+        color: #ffffff !important;
+    }
+
+    body.dark .card-custom i:not(.bi-star-fill):not(.bi-star):not(.btn i) {
+        color: #ffffff !important;
+    }
+
+    /* Alerta escuro no modo dark */
+    body.dark .alert-warning {
+        background-color: #2c2c2c !important;
+        color: #ffffff !important;
+        border-color: #444 !important;
+    }
+
+    /* Garante que ícones dentro do btn-custom herdem a cor do botão (preto ou dourado) */
+    body.dark .btn-custom i {
+        color: inherit !important;
+    }
+
 </style>
 
 <div class="container mt-5">
@@ -89,16 +120,17 @@
                                     </p>
 
                                     <div class="mt-2">
-                                        <a href="{% url 'ver_receita' receita.id %}" class="btn btn-warning text-dark fw-bold btn-sm">
+                                        <!-- MUDANÇA: Substituído 'btn-warning text-dark fw-bold' por 'btn-custom' -->
+                                        <a href="{% url 'ver_receita' receita.id %}" class="btn btn-custom btn-sm">
                                             <i class="bi bi-eye"></i> Ver
                                         </a>
-                                        <a href="{% url 'fazer_comentario' receita.id %}" class="btn btn-warning text-dark fw-bold btn-sm">
+                                        <a href="{% url 'fazer_comentario' receita.id %}" class="btn btn-custom btn-sm">
                                             <i class="bi bi-chat-dots"></i> Comentar
                                         </a>
-                                        <a href="{% url 'editar_receita' receita.id %}" class="btn btn-warning text-dark fw-bold btn-sm">
+                                        <a href="{% url 'editar_receita' receita.id %}" class="btn btn-custom btn-sm">
                                             <i class="bi bi-pencil"></i> Editar
                                         </a>
-                                        <a href="{% url 'confirmar_deletar_receita' receita.id %}" class="btn btn-warning text-dark fw-bold btn-sm">
+                                        <a href="{% url 'confirmar_deletar_receita' receita.id %}" class="btn btn-custom btn-sm">
                                             <i class="bi bi-trash"></i> Deletar
                                         </a>
                                     </div>
@@ -114,7 +146,8 @@
                 {% endif %}
 
                 <div class="text-center mt-3">
-                    <a href="{% url 'criar_receita' %}" class="btn btn-warning text-dark fw-bold btn-lg">
+                    <!-- MUDANÇA: Botão Grande também com 'btn-custom' -->
+                    <a href="{% url 'criar_receita' %}" class="btn btn-custom btn-lg">
                         <i class="bi bi-plus-circle"></i> Criar Nova Receita
                     </a>
                 </div>
