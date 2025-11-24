@@ -1,7 +1,6 @@
-# Node.js
+<<<<<<< HEAD
 node_modules/
-
-# Python
+=======
 __pycache__/
 *.pyc
 *.pyo
@@ -35,8 +34,14 @@ _mailinglist
 *.db
 *.sqlite3
 
+>>>>>>> perfil-e-tags
 # Relatórios de Teste
 cypress/reports/
 
+# Arquivos de Cache do Python
+__pycache__/
+*.pyc
+
 # Banco de Dados
+*.sqlite3
 db.sqlite3

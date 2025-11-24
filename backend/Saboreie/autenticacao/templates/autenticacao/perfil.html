@@ -3,168 +3,341 @@
 {% block title %}Perfil - {{ perfil_usuario.username }}{% endblock %}
 
 {% block content %}
-<!-- Navbar -->
-<nav>
-    <div>
-        <a href="{% url 'home' %}">Saborize</a>
-        <ul>
-            {% if user.is_authenticated %}
-                <li><a href="{% url 'feed_receitas' %}">Feed</a></li>
-                <li><a href="{% url 'criar_receita' %}">Criar Receita</a></li>
-                <li><a href="{% url 'perfil' %}">Meu Perfil</a></li>
-                <li><a href="{% url 'logout' %}">Sair</a></li>
-            {% else %}
-                <li><a href="{% url 'paginaLogin' %}">Login</a></li>
-                <li><a href="{% url 'registrarUser' %}">Registrar</a></li>
-            {% endif %}
-        </ul>
-    </div>
-</nav>
 
-<div>
-    <!-- Header do Perfil -->
-    <div>
-        <div>
-            <!-- Foto de perfil -->
-            <div>
+<style>
+   
+    .receita-img-small {
+        width: 90px;
+        height: 90px;
+        object-fit: cover;
+        border-radius: 8px;
+        margin-right: 15px;
+        box-shadow: 0px 2px 6px rgba(0,0,0,0.15);
+        background: #f2f2f2;
+    }
+
+    
+    .card-receita {
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+        border: 1px solid rgba(0, 0, 0, 0.3);
+        box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.25);
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        border-radius: 10px; 
+    }
+
+    .card-receita .card-body {
+        display: flex;
+        flex-direction: column;
+        flex: 1 1 auto;
+    }
+
+    .card-receita:hover {
+        transform: translateY(-6px);
+        box-shadow: 0px 6px 16px rgba(0, 0, 0, 0.45);
+        border-color: rgba(0, 0, 0, 0.6);
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    
+    .card-receita .receita-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .card-receita .receita-meta {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+  
+    .card-receita .card-actions {
+        margin-top: auto;
+        display: flex;
+        gap: 8px;
+    }
+
+   
+    .btn-custom {
+        background-color: #f0ad4e;
+        color: #000 !important;
+        border: 2px solid #FFD700;
+        transition: all 0.2s ease-in-out;
+    }
+    .btn-custom:hover {
+        background-color: #e0a800;
+        color: #000 !important;
+        border-color: #FFD700;
+        transform: scale(1.02);
+    }
+
+    /* =========================================
+       REGRAS PARA O MODO DARK
+       ========================================= */
+    body.dark .card-custom h2,
+    body.dark .card-custom h4,
+    body.dark .card-custom h5,
+    body.dark .card-custom h6,
+    body.dark .card-custom p,
+    body.dark .card-custom strong,
+    body.dark .card-custom small,
+    body.dark .card-custom span,
+    body.dark .card-custom .text-muted,
+    body.dark .card-receita h5,
+    body.dark .card-receita p,
+    body.dark .card-receita span,
+    body.dark .card-receita .text-muted {
+        color: #ffffff !important;
+    }
+
+    /* Ajuste da borda do card de receita no modo dark para ficar visível */
+    body.dark .card-receita {
+        border-color: rgba(255, 255, 255, 0.3) !important;
+    }
+    
+    /* Ícones gerais brancos no dark mode */
+    body.dark .card-custom i:not(.bi-star-fill):not(.bi-star):not(.btn i),
+    body.dark .card-receita i:not(.bi-star-fill):not(.bi-star):not(.btn i) {
+        color: #ffffff !important;
+    }
+
+    /* Garante que ícones DENTRO dos botões btn-custom mantenham a cor preta */
+    body.dark .btn-custom i {
+        color: inherit !important;
+    }
+
+</style>
+
+
+<div class="container mt-4">
+
+    <!-- CARD PRINCIPAL DO PERFIL -->
+    <div class="card card-custom p-4 mb-4">
+
+        <div class="row align-items-center">
+
+            <!-- FOTO -->
+            <div class="col-md-3 text-center mb-3">
                 {% if perfil_usuario.foto_perfil %}
-                    <img src="{{ perfil_usuario.foto_perfil.url }}" alt="Foto de {{ perfil_usuario.username }}">
+                    <img src="{{ perfil_usuario.foto_perfil.url }}" class="rounded-circle shadow"
+                         style="width: 140px; height: 140px; object-fit: cover;">
                 {% else %}
-                    <div>[Sem foto de perfil]</div>
+                    <div class="rounded-circle bg-secondary text-white d-flex justify-content-center align-items-center mx-auto"
+                         style="width: 140px; height: 140px;">
+                        Sem foto
+                    </div>
                 {% endif %}
             </div>
-            
-            <!-- Informações do usuário -->
-            <div>
-                <h2>
+
+            <!-- INFOS -->
+            <div class="col-md-6">
+
+                <h2 class="fw-bold">
                     {% if perfil_usuario.first_name or perfil_usuario.last_name %}
                         {{ perfil_usuario.first_name }} {{ perfil_usuario.last_name }}
                     {% else %}
                         {{ perfil_usuario.username }}
                     {% endif %}
                 </h2>
-                <p>@{{ perfil_usuario.username }}</p>
-                
+
+                <p class="text-muted">@{{ perfil_usuario.username }}</p>
+
                 {% if perfil_usuario.bio %}
                     <p>{{ perfil_usuario.bio }}</p>
                 {% endif %}
-                
-                <div>
-                    <div>
-                        <strong>{{ perfil_usuario.total_receitas }}</strong><br>
-                        <span>Receitas</span>
+
+                <div class="d-flex gap-4 mt-3">
+                    <div class="text-center">
+                        <strong class="fs-5">{{ perfil_usuario.total_receitas }}</strong><br>
+                        <span class="text-muted">Receitas</span>
                     </div>
-                    <div>
-                        <strong>{{ perfil_usuario.total_seguidores }}</strong><br>
-                        <span>Seguidores</span>
+                    <div class="text-center">
+                        <strong class="fs-5">{{ perfil_usuario.total_seguidores }}</strong><br>
+                        <span class="text-muted">Seguidores</span>
                     </div>
-                    <div>
-                        <strong>{{ perfil_usuario.total_seguindo }}</strong><br>
-                        <span>Seguindo</span>
+                    <div class="text-center">
+                        <strong class="fs-5">{{ perfil_usuario.total_seguindo }}</strong><br>
+                        <span class="text-muted">Seguindo</span>
                     </div>
                 </div>
+
             </div>
-            
-            <!-- Botões de ação -->
-            <div>
+
+            <!-- BOTÃO DE SEGUIR / EDITAR -->
+            <div class="col-md-3 text-center">
+
                 {% if is_own_profile %}
-                    <a href="{% url 'editar_perfil' %}">Editar Perfil</a>
+                    <a href="{% url 'editar_perfil' %}" class="btn btn-custom w-100 fw-bold">
+                        Editar Perfil
+                    </a>
                 {% else %}
-                    <button>Seguir</button>
+                    <button id="seguir-btn"
+                            class="btn btn-secondary w-100 fw-bold"
+                            onclick="toggleSeguirPerfil(this)"
+                            data-user-id="{{ perfil_usuario.id }}">
+                        Seguir
+                    </button>
                 {% endif %}
+
             </div>
-        </div>
-        
-        <!-- Informações adicionais -->
-        <div>
-            {% if perfil_usuario.cidade or perfil_usuario.estado %}
-                <div>
-                    Localização: {{ perfil_usuario.cidade }}{% if perfil_usuario.cidade and perfil_usuario.estado %}, {% endif %}{{ perfil_usuario.estado }}
-                </div>
-            {% endif %}
-            
-            {% if perfil_usuario.email and is_own_profile %}
-                <div>
-                    Email: {{ perfil_usuario.email }}
-                </div>
-            {% endif %}
-            
-            {% if perfil_usuario.data_nascimento and is_own_profile %}
-                <div>
-                    Nasceu em: {{ perfil_usuario.data_nascimento|date:"d/m/Y" }}
-                </div>
-            {% endif %}
-            
-            {% if perfil_usuario.telefone and is_own_profile %}
-                <div>
-                    Telefone: {{ perfil_usuario.telefone }}
-                </div>
-            {% endif %}
-            
-            <!-- Tags favoritas -->
-            {% if perfil_usuario.tags_favoritas.all %}
-                <div>
-                    <h6>Tipos de receitas favoritas:</h6>
-                    <div>
-                        {% for tag in perfil_usuario.tags_favoritas.all %}
-                            <span>{{ tag.nome }}</span>{% if not forloop.last %}, {% endif %}
-                        {% endfor %}
-                    </div>
-                </div>
-            {% endif %}
+
         </div>
     </div>
-    
-    <!-- Receitas do usuário -->
-    <div>
-        <h4>
-            {% if is_own_profile %}
-                Minhas Receitas
-            {% else %}
-                Receitas de {{ perfil_usuario.username }}
-            {% endif %}
-        </h4>
-        
-        {% if receitas_recentes %}
-            <div>
-                {% for receita in receitas_recentes %}
-                    <div>
-                        <h5>{{ receita.titulo }}</h5>
-                        <p>{{ receita.descricao|truncatewords:15 }}</p>
-                        <div>
-                            <span>{{ receita.criada_em|date:"d/m/Y" }}</span>
-                            <div>
-                                {% if receita.media_avaliacoes > 0 %}
-                                    <span>
-                                        Avaliação: {{ receita.media_avaliacoes }}/5
-                                    </span>
-                                {% endif %}
-                            </div>
-                        </div>
-                        <a href="#">Ver Receita</a>
-                    </div>
+
+    <!-- INFO EXTRA -->
+    <div class="card card-custom p-4 mb-4">
+
+        {% if perfil_usuario.cidade or perfil_usuario.estado %}
+            <p><strong>Localização:</strong> {{ perfil_usuario.cidade }}{% if perfil_usuario.cidade and perfil_usuario.estado %}, {% endif %}{{ perfil_usuario.estado }}</p>
+        {% endif %}
+
+        {% if perfil_usuario.email and is_own_profile %}
+            <p><strong>Email:</strong> {{ perfil_usuario.email }}</p>
+        {% endif %}
+
+        {% if perfil_usuario.data_nascimento and is_own_profile %}
+            <p><strong>Data de nascimento:</strong> {{ perfil_usuario.data_nascimento|date:"d/m/Y" }}</p>
+        {% endif %}
+
+        {% if perfil_usuario.telefone and is_own_profile %}
+            <p><strong>Telefone:</strong> {{ perfil_usuario.telefone }}</p>
+        {% endif %}
+
+        {% if perfil_usuario.tags_favoritas.all %}
+            <h6>Tipos favoritos:</h6>
+            <div class="d-flex flex-wrap gap-2">
+                {% for tag in perfil_usuario.tags_favoritas.all %}
+                    <span class="badge bg-warning text-dark">{{ tag.nome }}</span>
                 {% endfor %}
             </div>
-            
+        {% endif %}
+
+    </div>
+
+    <!-- RECEITAS -->
+    <div class="card card-custom p-4">
+
+        <!-- TÍTULO + BOTÃO NOVA RECEITA -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="m-0">
+                {% if is_own_profile %}
+                    Minhas Receitas
+                {% else %}
+                    Receitas de {{ perfil_usuario.username }}
+                {% endif %}
+            </h4>
+
+            {% if is_own_profile %}
+                <a href="{% url 'criar_receita' %}" class="btn btn-custom fw-bold px-3 py-2">
+                    Nova Receita +
+                </a>
+            {% endif %}
+        </div>
+
+        {% if receitas_recentes %}
+            <div class="row g-3">
+
+                {% for receita in receitas_recentes %}
+                    <div class="col-md-4">
+
+                        <!-- NOVO CARD COM IMAGEM PEQUENA À ESQUERDA -->
+                        <div class="card-receita rounded p-3 h-100">
+                            <div class="card-body">
+
+                                <div class="receita-row mb-2">
+                                    <!-- IMAGEM PEQUENA -->
+                                    {% if receita.imagem %}
+                                        <img src="{{ receita.imagem.url }}" alt="Foto da receita" class="receita-img-small">
+                                    {% else %}
+                                        <img src="/static/img/sem_foto.png" alt="Sem foto" class="receita-img-small">
+                                    {% endif %}
+
+                                    <!-- META -->
+                                    <div class="receita-meta">
+                                        <h5 class="fw-bold mb-1" style="margin:0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                            {{ receita.titulo }}
+                                        </h5>
+
+                                        <div class="mb-2">
+                                            {% for tag in receita.tags.all %}
+                                                <span class="badge bg-warning text-dark">{{ tag.nome }}</span>
+                                            {% empty %}
+                                                <span class="text-muted">Sem categoria</span>
+                                            {% endfor %}
+                                        </div>
+
+                                        <p class="mb-1" style="margin:0; color: #666;">
+                                            {{ receita.descricao|truncatewords:10 }}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="text-muted">{{ receita.criada_em|date:"d/m/Y" }}</span>
+                                    {% if receita.media_avaliacoes > 0 %}
+                                        <span class="fw-bold">★ {{ receita.media_avaliacoes }}/5</span>
+                                    {% endif %}
+                                </div>
+
+                                <div class="card-actions">
+                                    <a href="{% url 'ver_receita' receita.id %}" class="btn btn-custom btn-sm w-100 fw-bold">
+                                        Ver Receita
+                                    </a>
+                                </div>
+
+                            </div>
+                        </div>
+
+                    </div>
+                {% endfor %}
+
+            </div>
+
             {% if perfil_usuario.total_receitas > 6 %}
-                <div>
-                    <a href="#">Ver todas as receitas</a>
+                <div class="text-center mt-3">
+                    <!-- Botão Ver todas ajustado para btn-custom ou mantido outline se preferir contraste -->
+                    <a href="#" class="btn btn-custom fw-bold">Ver todas</a>
                 </div>
             {% endif %}
+
         {% else %}
-            <div>
-                <h5>
+            <div class="text-center">
+                <h5 class="mb-3">
                     {% if is_own_profile %}
-                        Você ainda não publicou nenhuma receita
+                        Você ainda não publicou receitas
                     {% else %}
-                        Este usuário ainda não publicou nenhuma receita
+                        Este usuário não publicou receitas
                     {% endif %}
                 </h5>
+
                 {% if is_own_profile %}
-                    <a href="{% url 'criar_receita' %}">Criar minha primeira receita</a>
+                    <a href="{% url 'criar_receita' %}" class="btn btn-custom fw-bold">Criar minha primeira receita</a>
                 {% endif %}
             </div>
         {% endif %}
+
     </div>
+
 </div>
+
+<!-- SCRIPT DO BOTÃO SEGUIR (apenas UI local) -->
+<script>
+function toggleSeguirPerfil(btn) {
+    const usuarioId = btn.getAttribute("data-user-id");
+
+    // Nota: Isso é apenas visual. Em produção você faria uma chamada AJAX/Fetch aqui.
+    if (btn.classList.contains("btn-secondary")) {
+        btn.classList.remove("btn-secondary");
+        btn.classList.add("btn-custom"); // Usa o amarelo padrão
+        btn.textContent = "Seguindo";
+    } else {
+        btn.classList.remove("btn-custom");
+        btn.classList.add("btn-secondary");
+        btn.textContent = "Seguir";
+    }
+}
+</script>
+
 {% endblock %}

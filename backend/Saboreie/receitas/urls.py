@@ -38,6 +38,13 @@ urlpatterns = [
     path('api/seguir/<int:user_id>/', views.seguir_usuario, name='seguir_usuario'),
     path('api/parar-seguir/<int:user_id>/', views.parar_de_seguir, name='parar_de_seguir'),
 
+    # API de notificações
+    path('api/notificacoes/', views.api_listar_notificacoes, name='api_listar_notificacoes'),
+    path('api/notificacoes/<int:notificacao_id>/marcar_como_lida/', views.api_marcar_notificacao_como_lida, name='api_marcar_notificacao_como_lida'),
+
+    # Gerador de receitas com IA (requer login)
+    path('gerador-ia/', views.gerador_receitas_ai, name='gerador_receitas_ai'),
+
     # listar todas as tags
      path("tags/", listar_tags, name="listar_tags"),
 ]

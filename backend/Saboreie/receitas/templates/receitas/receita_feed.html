@@ -17,46 +17,40 @@
     .star:hover { color: #FFD700; }
     .star.filled { color: #FFD700; }
     .rating-display .star { color: #FFD700; cursor: default; }
-</style>
 
-<!-- Configuração do Layout da Navbar -->
-<nav class="navbar navbar-expand-lg navbar-custom">
-    <div class="container d-flex align-items-center">
-        <a href="javascript:history.back()" class="me-3 text-decoration-none text-light">
-            <i class="bi bi-arrow-left fs-4"></i>
-        </a>
-        <a class="navbar-brand" href="{% url 'feed_receitas' %}">SABORIZE</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
-            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto">
-                {% if request.user.is_authenticated %}
-                    <li><span class="nav-link">Logado como <strong>{{ user.username }}</strong></span></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'listar_receitas' %}">Minhas Receitas</a></li>
-                    <li><a class="nav-link" href="{% url 'logout' %}">Logout</a></li>
-                {% else %}
-                    <li class="nav-item"><a class="nav-link" href="{% url 'paginaLogin' %}">Login</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'registrarUser' %}">Registrar</a></li>
-                {% endif %}
-            </ul>
-        </div>
-    </div>
-</nav>
+    /* Imagem da receita no topo do card */
+    .receita-img-top {
+        width: 100%;
+        height: 280px;
+        object-fit: cover;
+        border-radius: 14px 14px 0 0;
+        background: #f2f2f2;
+    }
+</style>
 
 <div class="container mt-4">
 
     <!-- Informações da receita -->
     <div class="card card-custom mb-4">
+
+        <!-- IMAGEM NO TOPO DO CARD -->
+        {% if receita.imagem %}
+            <img src="{{ receita.imagem.url }}" alt="Foto da receita" class="card-img-top receita-img-top">
+        {% else %}
+            <img src="/static/img/sem_foto.png" alt="Sem foto" class="card-img-top receita-img-top">
+        {% endif %}
+
         <div class="card-body">
             <h1 class="card-title">{{ receita.titulo }}</h1>
+
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <div>
-                    <p class="mb-0"><strong>Autor:</strong> {{ receita.user.username }} | 
+                    <p class="mb-0">
+                        <strong>Autor:</strong> {{ receita.user.username }} |
                         <strong>Publicada em:</strong> {{ receita.criada_em|date:"d/m/Y H:i" }}
                     </p>
                 </div>
+                
                 {% if user.is_authenticated and user != receita.user %}
                     <div>
                         <button id="seguir-btn" 
@@ -69,6 +63,7 @@
                     </div>
                 {% endif %}
             </div>
+
             {% if receita.atualizada_em != receita.criada_em %}
                 <p><strong>Última atualização:</strong> {{ receita.atualizada_em|date:"d/m/Y H:i" }}</p>
             {% endif %}
@@ -107,7 +102,10 @@
             {% elif user == receita.user %}
                 <p><em>Você não pode avaliar sua própria receita.</em></p>
             {% else %}
-                <p><a href="{% url 'paginaLogin' %}?next={{ request.get_full_path }}">Faça login</a> para avaliar esta receita.</p>
+                <p>
+                    <a href="{% url 'paginaLogin' %}?next={{ request.get_full_path }}">Faça login</a> 
+                    para avaliar esta receita.
+                </p>
             {% endif %}
         </div>
     </div>
@@ -120,15 +118,19 @@
             {% if user.is_authenticated %}
                 <a href="{% url 'fazer_comentario' receita.id %}" class="btn btn-custom mb-3">Comentar nesta receita</a>
             {% else %}
-                <p><strong>Quer comentar?</strong> 
-                    <a href="{% url 'paginaLogin' %}?next={{ request.get_full_path }}">Faça login</a> ou 
-                    <a href="{% url 'registrarUser' %}?next={{ request.get_full_path }}">registre-se</a> para participar da conversa!
+                <p>
+                    <strong>Quer comentar?</strong>
+                    <a href="{% url 'paginaLogin' %}?next={{ request.get_full_path }}">Faça login</a>
+                    ou 
+                    <a href="{% url 'registrarUser' %}?next={{ request.get_full_path }}">registre-se</a>
+                    para participar da conversa!
                 </p>
             {% endif %}
 
             {% for comentario in comentarios %}
                 <div class="border p-2 mb-2 rounded">
-                    <div><strong>{{ comentario.usuario.username }}</strong> - {{ comentario.criado_em|date:"d/m/Y H:i" }} 
+                    <div>
+                        <strong>{{ comentario.usuario.username }}</strong> - {{ comentario.criado_em|date:"d/m/Y H:i" }}
                         {% if comentario.atualizado_em != comentario.criado_em %}
                             <em>(editado em {{ comentario.atualizado_em|date:"d/m/Y H:i" }})</em>
                         {% endif %}
@@ -144,7 +146,6 @@
 </div>
 
 <script>
-    // Obter o token CSRF
     function getCookie(name) {
         let cookieValue = null;
         if (document.cookie && document.cookie !== '') {
@@ -159,7 +160,7 @@
         }
         return cookieValue;
     }
-    
+
     const csrftoken = getCookie('csrftoken');
     let isFollowing = false;
 
@@ -193,16 +194,115 @@
         .then(data => {
             if (data.success) {
                 atualizarBotaoSeguir(data.action === 'seguindo');
-            } else {
-                console.error('Erro:', data.error);
             }
         })
-        .catch(error => console.error('Erro ao seguir/parar de seguir:', error));
+        .catch(error => console.error('Erro:', error));
     }
 
     document.addEventListener('DOMContentLoaded', function() {
         verificarSeguindo();
+        
+        // Inicializar sistema de avaliação
+        {% if user.is_authenticated and user != receita.user %}
+        initRatingSystem();
+        carregarAvaliacaoUsuario();
+        {% endif %}
     });
+
+    // Sistema de Avaliação
+    {% if user.is_authenticated and user != receita.user %}
+    let userRating = 0;
+
+    function initRatingSystem() {
+        const stars = document.querySelectorAll('#stars-container .star');
+        
+        stars.forEach(star => {
+            // Hover effect
+            star.addEventListener('mouseenter', function() {
+                const rating = parseInt(this.getAttribute('data-rating'));
+                highlightStars(rating);
+            });
+            
+            // Click event
+            star.addEventListener('click', function() {
+                const rating = parseInt(this.getAttribute('data-rating'));
+                avaliarReceita(rating);
+            });
+        });
+        
+        // Reset stars on container leave
+        const container = document.getElementById('stars-container');
+        container.addEventListener('mouseleave', function() {
+            highlightStars(userRating);
+        });
+    }
+
+    function highlightStars(rating) {
+        const stars = document.querySelectorAll('#stars-container .star');
+        stars.forEach((star, index) => {
+            if (index < rating) {
+                star.classList.add('filled');
+            } else {
+                star.classList.remove('filled');
+            }
+        });
+    }
+
+    function carregarAvaliacaoUsuario() {
+        fetch(`/receitas/api/avaliacoes/{{ receita.id }}/`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.user_avaliacao && data.user_avaliacao.nota) {
+                    userRating = data.user_avaliacao.nota;
+                    highlightStars(userRating);
+                    document.getElementById('avaliacao-message').innerHTML = 
+                        `<span class="text-success">Você avaliou com ${userRating} estrelas</span>`;
+                }
+            })
+            .catch(error => console.error('Erro ao carregar avaliação:', error));
+    }
+
+    function avaliarReceita(nota) {
+        const messageDiv = document.getElementById('avaliacao-message');
+        
+        fetch(`/receitas/api/avaliacao/criar/{{ receita.id }}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            },
+            body: JSON.stringify({ nota: nota })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                userRating = nota;
+                highlightStars(nota);
+                
+                // Atualizar a exibição da média
+                const mediaElement = document.querySelector('.card-custom p strong');
+                if (mediaElement) {
+                    mediaElement.parentElement.innerHTML = 
+                        `<strong>★ ${data.receita_stats.media_avaliacoes}/5</strong> ` +
+                        `(${data.receita_stats.total_avaliacoes} avaliação${data.receita_stats.total_avaliacoes > 1 ? 'ões' : ''})`;
+                }
+                
+                messageDiv.innerHTML = `<span class="text-success">${data.message}</span>`;
+                
+                // Limpar mensagem após 3 segundos
+                setTimeout(() => {
+                    messageDiv.innerHTML = `<span class="text-success">Você avaliou com ${nota} estrelas</span>`;
+                }, 3000);
+            } else {
+                messageDiv.innerHTML = `<span class="text-danger">${data.error}</span>`;
+            }
+        })
+        .catch(error => {
+            console.error('Erro ao avaliar:', error);
+            messageDiv.innerHTML = '<span class="text-danger">Erro ao enviar avaliação</span>';
+        });
+    }
+    {% endif %}
 </script>
 
 {% endblock content %}
