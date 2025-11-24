@@ -337,8 +337,12 @@ def feed_receitas(request):
         receitas = receitas.filter(
             Q(titulo__icontains=busca) |
             Q(descricao__icontains=busca) |
+            Q(user__username__icontains=busca) |
+            Q(tags__nome__icontains=busca) |
             Q(ingredientes__icontains=busca)
         )
+        
+        receitas = receitas.distinct()
 
     # 🔹 Filtro por TAG (ManyToMany)
     if tag_id:

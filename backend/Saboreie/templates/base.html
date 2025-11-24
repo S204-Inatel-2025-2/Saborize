@@ -22,6 +22,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Changa+One:ital@0;1&display=swap" rel="stylesheet">
 
     <style>
+
         /* ============================
             TEMA LIGHT (PADRÃO)
         ============================ */
@@ -49,8 +50,9 @@
         }
 
         .navbar-custom {
-            background-color: #000000;
+            background-color: #000;
             transition: background 0.3s;
+            z-index: 1050 !important; 
         }
 
         .navbar-custom .navbar-brand,
@@ -75,34 +77,25 @@
             background: rgba(255, 255, 255, 0.92);
             backdrop-filter: blur(4px);
             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            transition: background 0.3s, color 0.3s;
         }
 
         .btn-custom {
             background-color: #FFD700 !important;
-            color: #000000 !important;
-            font-weight: bold;
-            border: 2px solid transparent;
-            transition: all 0.3s ease-in-out !important;
+            color: #000 !important;
         }
 
         .btn-custom:hover {
-            background-color: #000000 !important;
+            background-color: #000 !important;
             color: #FFD700 !important;
             border: 2px solid #FFD700 !important;
-            transform: scale(1.03);
         }
 
         /* ============================
             TEMA DARK
         ============================ */
+
         body.dark {
             background-image: url("{% static 'imagens/background_black.png' %}");
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
-            background-repeat: no-repeat;
-            color: #e5e5e5 !important;
         }
 
         body.dark .navbar-custom {
@@ -119,55 +112,63 @@
             color: #f1f1f1 !important;
         }
 
-        body.dark .btn-custom {
-            background-color: #333 !important;
-            color: #FFD700 !important;
-            border-color: #FFD700 !important;
-        }
-
-        body.dark .btn-custom:hover {
-            background-color: #FFD700 !important;
-            color: #000 !important;
-        }
-
-        /* Botão de tema */
+        /* Ícone de troca de tema */
         #toggle-theme {
             cursor: pointer;
             font-size: 1.4rem;
-            color: #FFD700;
+            color: #FFD700 !important;
             margin-left: 15px;
         }
 
+        body.dark #toggle-theme {
+            color: #FFD700 !important;
+        }
+
         /* ============================
-           REGRAS GLOBAIS: TEXTO PRETO → AMARELO NO DARK
+            NOTIFICAÇÕES
         ============================ */
 
-        /* Classes do Bootstrap */
-        body.dark .text-dark,
-        body.dark a.text-dark,
-        body.dark .text-black {
+        .notification-badge {
+            position: absolute;
+            top: -3px;
+            right: -3px;
+            background: red;
+            color: white;
+            font-size: 0.75rem;
+            padding: 2px 5px;
+            border-radius: 50%;
+        }
+
+        .dropdown-menu.notifications-menu {
+            width: 320px;
+            max-height: 400px;
+            overflow-y: auto;
+            background: white !important;
+            color: black !important;
+            z-index: 2000 !important;
+        }
+
+        body.dark .dropdown-menu.notifications-menu {
+            background: #2a2a2a !important;
             color: #FFD700 !important;
         }
 
-        /* Links que viriam com cor padrão preta */
-        body.dark a:not(.nav-link):not(.btn) {
+        body.dark .dropdown-menu.notifications-menu .dropdown-item {
             color: #FFD700 !important;
         }
 
-        /* Cobre estilos inline */
-        body.dark [style*="color: #000"],
-        body.dark [style*="color:#000"],
-        body.dark [style*="color: black"],
-        body.dark [style*="color:black"] {
-            color: #FFD700 !important;
+        /* Texto sem notificações */
+        .no-notifications {
+            color: #6c757d;
+            font-weight: 500;
         }
 
-        /* Específico para sua mensagem animada do feed */
-        body.dark .mensagem-destaque {
+        body.dark .no-notifications {
             color: #FFD700 !important;
         }
 
     </style>
+
 </head>
 
 <body>
@@ -193,7 +194,8 @@
                 <div class="collapse navbar-collapse" id="navbarNav">
 
                     {% if user.is_authenticated %}
-                        <!-- MENUS CENTRAIS -->
+                        
+                        <!-- LINKS CENTRAIS -->
                         <ul class="navbar-nav mx-auto">
                             <li class="nav-item"><a class="nav-link centered" href="{% url 'criar_receita' %}">Criar Receita</a></li>
                             <li class="nav-item"><a class="nav-link centered" href="{% url 'feed_receitas' %}">Feed</a></li>
@@ -204,62 +206,129 @@
 
                         <!-- MENU DIREITO -->
                         <ul class="navbar-nav ms-auto">
+
                             <li class="nav-item"><a class="nav-link" href="{% url 'listar_receitas' %}">Minhas Receitas</a></li>
                             <li class="nav-item"><a class="nav-link" href="{% url 'perfil' %}">Meu Perfil</a></li>
                             <li class="nav-item"><a class="nav-link" href="{% url 'logout' %}">Logout</a></li>
 
-                            <!-- BOTÃO DARK/LIGHT -->
+                            <!-- NOTIFICAÇÕES -->
+                            <li class="nav-item dropdown position-relative">
+                                <a class="nav-link dropdown-toggle" href="#" id="notifDropdown"
+                                   role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-bell fs-4"></i>
+                                    <span id="notif-badge" class="notification-badge d-none">0</span>
+                                </a>
+
+                                <ul class="dropdown-menu notifications-menu dropdown-menu-end"
+                                    aria-labelledby="notifDropdown" id="notif-list">
+                                    <li><span class="dropdown-item-text text-muted">Carregando...</span></li>
+                                </ul>
+                            </li>
+
+                            <!-- BOTÃO TEMA -->
                             <li class="nav-item d-flex align-items-center">
                                 <i id="toggle-theme" class="bi bi-moon-fill"></i>
                             </li>
+
                         </ul>
 
                     {% else %}
                         <ul class="navbar-nav ms-auto">
                             <li class="nav-item"><a class="nav-link" href="{% url 'paginaLogin' %}">Login</a></li>
                             <li class="nav-item"><a class="nav-link" href="{% url 'registrarUser' %}">Registrar</a></li>
-
-                            <!-- Botão tema -->
-                            <li class="nav-item d-flex align-items-center">
-                                <i id="toggle-theme" class="bi bi-moon-fill"></i>
-                            </li>
+                            <li class="nav-item"><i id="toggle-theme" class="bi bi-moon-fill"></i></li>
                         </ul>
                     {% endif %}
                 </div>
             </div>
         </nav>
 
-        <!-- CONTEÚDO PRINCIPAL -->
         {% block content %}
         {% endblock content %}
+
     </div>
 
-    <!-- Script do tema -->
+    <!-- SCRIPT DO TEMA -->
     <script>
         const body = document.body;
         const toggleBtn = document.getElementById("toggle-theme");
 
-        // Carregar preferência
         if (localStorage.getItem("theme") === "dark") {
             body.classList.add("dark");
-            toggleBtn.classList.remove("bi-moon-fill");
-            toggleBtn.classList.add("bi-sun-fill");
+            toggleBtn.classList.replace("bi-moon-fill", "bi-sun-fill");
         }
 
-        // Alternar tema
         toggleBtn.addEventListener("click", () => {
             body.classList.toggle("dark");
 
             if (body.classList.contains("dark")) {
                 localStorage.setItem("theme", "dark");
-                toggleBtn.classList.remove("bi-moon-fill");
-                toggleBtn.classList.add("bi-sun-fill");
+                toggleBtn.classList.replace("bi-moon-fill", "bi-sun-fill");
             } else {
                 localStorage.setItem("theme", "light");
-                toggleBtn.classList.remove("bi-sun-fill");
-                toggleBtn.classList.add("bi-moon-fill");
+                toggleBtn.classList.replace("bi-sun-fill", "bi-moon-fill");
             }
         });
+    </script>
+
+    <!-- SCRIPT DE NOTIFICAÇÕES -->
+    <script>
+        async function carregarNotificacoes() {
+            try {
+                const response = await fetch("/receitas/api/notificacoes/?apenas_nao_lidas=1");
+                const data = await response.json();
+
+                const notifList = document.getElementById("notif-list");
+                const badge = document.getElementById("notif-badge");
+
+                notifList.innerHTML = "";
+
+                if (!data.notificacoes || data.notificacoes.length === 0) {
+                    notifList.innerHTML = `<li><span class="dropdown-item-text no-notifications">Sem notificações</span></li>`;
+                    badge.classList.add("d-none");
+                    return;
+                }
+
+                badge.textContent = data.total;
+                badge.classList.remove("d-none");
+
+                data.notificacoes.forEach(notif => {
+
+                    const dataFmt = new Date(notif.criada_em).toLocaleString("pt-BR", {
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit"
+                    });
+
+                    const item = document.createElement("li");
+                    item.innerHTML = `
+                        <a href="#" class="dropdown-item" onclick="marcarComoLida(${notif.id})">
+                            <strong>${notif.mensagem}</strong><br>
+                            <small class="text-muted">${dataFmt}</small>
+                        </a>
+                    `;
+                    notifList.appendChild(item);
+                });
+
+            } catch (err) {
+                console.error("Erro ao carregar notificações:", err);
+            }
+        }
+
+        async function marcarComoLida(id) {
+            await fetch(`/receitas/api/notificacoes/${id}/marcar_como_lida/`, {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token }}"
+                }
+            });
+            carregarNotificacoes();
+        }
+
+        carregarNotificacoes();
+        setInterval(carregarNotificacoes, 15000);
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

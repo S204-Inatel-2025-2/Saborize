@@ -19,39 +19,50 @@
     }
 
     small.text-muted {
-    color: #6c757d !important;
+        color: #6c757d !important;
     }
+
     #caracteres-restantes {
         color: #6c757d !important;
     }
+
     body.dark .section-card small.text-muted {
         color: #6c757d !important;
     }
 
+    /* Comentários com foto no dark */
+    body.dark .comentario-card {
+        background-color: #e6e6e6 !important;
+        border-color: #555 !important;
+    }
+
 </style>
 
-<!-- Configuração do Layout do Conteúdo principal da página -->
+<!-- Layout Geral -->
 <div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-md-8">
             <div class="card card-custom p-4">
+
                 <h1 class="text-center mb-4">Comentar na receita: {{ receita.titulo }}</h1>
 
+                <!-- Bloco da Receita -->
                 <div class="p-3 mb-4 bg-light rounded shadow-sm">
                     <h4>{{ receita.titulo }}</h4>
                     <p><strong>Por:</strong> {{ receita.user.username }}</p>
                     <p><strong>Descrição:</strong> {{ receita.descricao|truncatewords:20 }}</p>
                 </div>
 
+                <!-- Formulário -->
                 {% if user.is_authenticated %}
                     <form id="comentario-form" class="mb-4">
                         <div class="mb-3">
                             <label for="texto-comentario" class="form-label">Escreva seu comentário:</label>
-                            <textarea id="texto-comentario" class="form-control" rows="5" maxlength="500" placeholder="Escreva seu comentário sobre esta receita..." required></textarea>
-                            <small class="text-muted">Máximo 500 caracteres. Restam: <span id="caracteres-restantes">500</span></small>
+                            <textarea id="texto-comentario" class="form-control" rows="5" maxlength="500" placeholder="Escreva seu comentário..." required></textarea>
+                            <small class="text-muted">Máx 500 caracteres. Restam: <span id="caracteres-restantes">500</span></small>
                         </div>
                         <div class="d-flex justify-content-center gap-2">
-                            <button type="submit" class="btn btn-custom" >Enviar Comentário</button>
+                            <button type="submit" class="btn btn-custom">Enviar Comentário</button>
                             <button type="button" class="btn btn-secondary" onclick="history.back()">Cancelar</button>
                         </div>
                     </form>
@@ -65,19 +76,45 @@
 
                 <hr>
                 <h3 class="mb-3">Comentários existentes ({{ total_comentarios }}):</h3>
+
+                <!-- LISTAGEM COM FOTO -->
                 {% for comentario in comentarios %}
-                    <div class="p-3 mb-3 border rounded bg-light" data-comentario-id="{{ comentario.id }}">
-                        <strong>{{ comentario.usuario.username }}</strong> - {{ comentario.criado_em|date:"d/m/Y H:i" }}
-                        {% if comentario.atualizado_em != comentario.criado_em %}
-                            <em>(editado)</em>
-                        {% endif %}
-                        {% if user == comentario.usuario or user == receita.user %}
-                            <div class="float-end">
-                                <button onclick="editarComentario('{{ comentario.id }}', '{{ comentario.texto|escapejs }}')" class="btn btn-sm btn-warning">Editar</button>
-                                <button onclick="deletarComentario('{{ comentario.id }}')" class="btn btn-sm btn-danger">Deletar</button>
+                    <div class="p-3 mb-3 border rounded bg-light comentario-card d-flex align-items-start gap-3"
+                         data-comentario-id="{{ comentario.id }}">
+
+                        {% if comentario.usuario.foto_perfil %}
+                            <img src="{{ comentario.usuario.foto_perfil.url }}"
+                                 alt="Foto do usuário"
+                                 class="rounded-circle shadow"
+                                 style="width: 50px; height: 50px; object-fit: cover;">
+                        {% else %}
+                            <div class="rounded-circle bg-secondary d-flex justify-content-center align-items-center shadow"
+                                 style="width: 50px; height: 50px; font-size: 0.7rem; color: white;">
+                                Sem foto
                             </div>
                         {% endif %}
-                        <p class="mt-2">{{ comentario.texto }}</p>
+
+                        <div class="flex-grow-1">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <strong>{{ comentario.usuario.username }}</strong>
+                                    <span class="text-muted small"> - {{ comentario.criado_em|date:"d/m/Y H:i" }}</span>
+
+                                    {% if comentario.atualizado_em != comentario.criado_em %}
+                                        <em class="text-muted small">(editado)</em>
+                                    {% endif %}
+                                </div>
+
+                                {% if user == comentario.usuario or user == receita.user %}
+                                    <div>
+                                        <button onclick="editarComentario('{{ comentario.id }}', '{{ comentario.texto|escapejs }}')" class="btn btn-sm btn-warning">Editar</button>
+                                        <button onclick="deletarComentario('{{ comentario.id }}')" class="btn btn-sm btn-danger">Deletar</button>
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <p class="mt-2 mb-0">{{ comentario.texto }}</p>
+                        </div>
                     </div>
                 {% empty %}
                     <p>Nenhum comentário ainda. Seja o primeiro!</p>
@@ -86,6 +123,7 @@
                 <div class="text-center mt-4">
                     <a href="{% url 'ver_receita_feed' receita.id %}" class="btn btn-secondary">Voltar para a receita</a>
                 </div>
+
             </div>
         </div>
     </div>
@@ -95,8 +133,9 @@
 <script>
     const textarea = document.getElementById('texto-comentario');
     const contador = document.getElementById('caracteres-restantes');
-    if (textarea && contador) {
-        textarea.addEventListener('input', function() {
+
+    if (textarea) {
+        textarea.addEventListener('input', function () {
             const restantes = 500 - this.value.length;
             contador.textContent = restantes;
             contador.style.color = restantes < 50 ? 'red' : 'black';
@@ -121,68 +160,48 @@
 
     const form = document.getElementById('comentario-form');
     if (form) {
-        form.addEventListener('submit', function(e) {
+        form.addEventListener('submit', function (e) {
             e.preventDefault();
             const texto = textarea.value.trim();
-            if (!texto) {
-                mostrarMensagem('Por favor, escreva um comentário.', 'error');
-                return;
-            }
+            if (!texto) return;
+
             fetch('/receitas/api/comentario/criar/{{ receita.id }}/', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrftoken
-                },
-                body: JSON.stringify({texto: texto})
-            })
-            .then(response => response.json())
-            .then(data => {
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken },
+                body: JSON.stringify({ texto: texto })
+            }).then(r => r.json()).then(data => {
                 if (data.success) {
-                    mostrarMensagem('Comentário enviado com sucesso!', 'success');
-                    setTimeout(() => {
-                        window.location.href = "{% url 'ver_receita' receita.id %}";
-                    }, 1500);
-                } else {
-                    mostrarMensagem('Erro: ' + data.error, 'error');
+                    document.getElementById('mensagem').innerHTML =
+                        `<p class="fw-bold text-success">Comentário enviado!</p>`;
+                    setTimeout(() => location.reload(), 1500);
                 }
-            })
-            .catch(() => mostrarMensagem('Erro ao enviar comentário', 'error'));
+            });
         });
     }
 
-    function mostrarMensagem(texto, tipo) {
-        const div = document.getElementById('mensagem');
-        div.innerHTML = `<p class="fw-bold ${tipo === 'success' ? 'text-success' : 'text-danger'}">${texto}</p>`;
-    }
-
     function deletarComentario(id) {
-        if (confirm('Tem certeza que deseja deletar este comentário?')) {
-            fetch('/receitas/api/comentario/deletar/' + id + '/', {
-                method: 'DELETE',
-                headers: {'X-CSRFToken': csrftoken}
-            })
-            .then(response => response.json())
-            .then(data => data.success ? location.reload() : alert('Erro: ' + data.error))
-            .catch(() => alert('Erro ao deletar comentário'));
-        }
+        if (!confirm('Tem certeza que deseja deletar este comentário?')) return;
+
+        fetch('/receitas/api/comentario/deletar/' + id + '/', {
+            method: 'DELETE',
+            headers: { 'X-CSRFToken': csrftoken }
+        }).then(r => r.json()).then(data => {
+            if (data.success) location.reload();
+        });
     }
 
     function editarComentario(id, textoAtual) {
         const novoTexto = prompt('Editar comentário:', textoAtual);
-        if (novoTexto && novoTexto.trim() !== textoAtual) {
-            fetch('/receitas/api/comentario/editar/' + id + '/', {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrftoken
-                },
-                body: JSON.stringify({texto: novoTexto.trim()})
-            })
-            .then(response => response.json())
-            .then(data => data.success ? location.reload() : alert('Erro: ' + data.error))
-            .catch(() => alert('Erro ao editar comentário'));
-        }
+        if (!novoTexto || novoTexto.trim() === textoAtual) return;
+
+        fetch('/receitas/api/comentario/editar/' + id + '/', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken },
+            body: JSON.stringify({ texto: novoTexto.trim() })
+        }).then(r => r.json()).then(data => {
+            if (data.success) location.reload();
+        });
     }
 </script>
+
 {% endblock content %}

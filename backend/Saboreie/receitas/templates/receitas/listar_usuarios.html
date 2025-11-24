@@ -4,23 +4,49 @@
 
 {% block content %}
 
+<style>
+    /* Estilo específico para modo dark */
+    body.dark h1,
+    body.dark .seguindo-info {
+        color: #FFD700 !important;
+    }
+</style>
+
 <!-- Conteúdo principal -->
 <div class="container mt-4">
     <div class="row">
         <div class="col-12">
             <h1>Descobrir Usuários</h1>
-            <p>Você está seguindo {{ total_seguindo }} pessoa{{ total_seguindo|pluralize:"s" }}</p>
+            <p class="seguindo-info">Você está seguindo {{ total_seguindo }} pessoa{{ total_seguindo|pluralize:"s" }}</p>
             
             <div id="mensagem" class="alert" style="display: none;"></div>
             
             {% if usuarios %}
                 <div class="row">
+
                     {% for usuario in usuarios %}
-                        <div class="col-md-6 col-lg-4 mb-3">
-                            <div class="card shadow-sm border-0 rounded-3">
-                                <div class="card-body">
-                                    <h5 class="card-title fw-bold">{{ usuario.username }}</h5>
-                                    <p class="card-text text-muted mb-3">
+                    <div class="col-md-6 col-lg-4 mb-3">
+                        <div class="card shadow-sm border-0 rounded-3">
+
+                            <div class="card-body d-flex align-items-center">
+
+                                <!-- FOTO DE PERFIL -->
+                                {% if usuario.foto_perfil %}
+                                    <img src="{{ usuario.foto_perfil.url }}" 
+                                         class="rounded-circle me-3"
+                                         style="width: 70px; height: 70px; object-fit: cover;">
+                                {% else %}
+                                    <div class="rounded-circle bg-secondary me-3 d-flex align-items-center justify-content-center"
+                                         style="width: 70px; height: 70px; color: white; font-size: 0.9rem;">
+                                        Sem foto
+                                    </div>
+                                {% endif %}
+
+                                <!-- NOME E INFORMAÇÕES -->
+                                <div class="flex-grow-1">
+                                    <h5 class="card-title fw-bold mb-1">{{ usuario.username }}</h5>
+
+                                    <p class="text-muted small mb-2">
                                         {{ usuario.receitas_count }} receita{{ usuario.receitas_count|pluralize:"s" }} pública{{ usuario.receitas_count|pluralize:"s" }}<br>
                                         {{ usuario.seguidores_count }} seguidor{{ usuario.seguidores_count|pluralize:"es" }}
                                     </p>
@@ -43,9 +69,12 @@
                                         </button>
                                     {% endif %}
                                 </div>
+
                             </div>
                         </div>
+                    </div>
                     {% endfor %}
+
                 </div>
             {% else %}
                 <div class="alert alert-info">
@@ -85,7 +114,6 @@
 
     function seguirUsuario(button) {
         const userId = button.getAttribute('data-user-id');
-        const username = button.getAttribute('data-username');
         fetch(`/receitas/api/seguir/${userId}/`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken }
@@ -123,4 +151,5 @@
         }
     }
 </script>
+
 {% endblock content %}

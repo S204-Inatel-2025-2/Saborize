@@ -4,13 +4,13 @@
 
 {% block content %}
 
-<!-- Estilo da mensagem pulsante e título -->
 <style>
     .titulo-feed {
         font-size: 2.4rem;
         font-weight: 900;
         text-align: center;
         margin-bottom: 0.5rem;
+        color: inherit;
     }
 
     .mensagem-destaque {
@@ -26,7 +26,6 @@
         100% { transform: scale(1); opacity: 0.80; }
     }
 
-    /* ESTILO DA IMAGEM NO CARD */
     .receita-img {
         width: 100%;
         height: 200px;
@@ -36,15 +35,29 @@
         background: #f2f2f2;
         box-shadow: 0px 2px 8px rgba(0,0,0,0.15);
     }
+
+    /* ===========================
+       Correções no Modo Dark
+       =========================== */
+
+    body.dark .titulo-feed {
+        color: #FFD700 !important;
+    }
+
+    body.dark .mensagem-destaque {
+        color: #FFD700 !important;
+    }
+
+    body.dark .card-custom h4 a,
+    body.dark h4 a {
+        color: #FFD700 !important;
+    }
 </style>
 
-<!-- CONTEÚDO PRINCIPAL -->
 <div class="container mt-5">
 
-    <!-- TÍTULO PRINCIPAL -->
     <h1 class="titulo-feed">Feed de Receitas</h1>
 
-    <!-- MENSAGEM PULSANTE ABAIXO DO TÍTULO -->
     <p class="text-center mensagem-destaque mb-4">
         🍽️ Saborize - Compartilhe suas receitas favoritas!
     </p>
@@ -66,13 +79,11 @@
 
     <p class="text-center"><strong>Total:</strong> {{ total_receitas }} receita{{ total_receitas|pluralize }}</p>
 
-    <!-- Lista de receitas -->
     <div class="row g-4">
         {% for receita in receitas %}
             <div class="col-md-6">
                 <div class="card card-custom p-3">
 
-                    <!-- IMAGEM DA RECEITA -->
                     {% if receita.imagem %}
                         <img src="{{ receita.imagem.url }}" alt="Foto da receita" class="receita-img">
                     {% else %}
@@ -85,9 +96,19 @@
                         </a>
                     </h4>
 
-                    <p><strong>Por:</strong> {{ receita.user.username }} | 
-                       <strong>Publicada em:</strong> {{ receita.criada_em|date:"d/m/Y H:i" }}
+                    <p>
+                        <strong>Por:</strong> {{ receita.user.username }} |
+                        <strong>Publicada em:</strong> {{ receita.criada_em|date:"d/m/Y H:i" }}
                     </p>
+
+                    <!-- ⭐ TAGS ADICIONADAS -->
+                    <div class="mb-2">
+                        {% for tag in receita.tags.all %}
+                            <span class="badge bg-warning text-dark">{{ tag.nome }}</span>
+                        {% empty %}
+                            <span class="text-muted">Sem categoria</span>
+                        {% endfor %}
+                    </div>
 
                     <p>{{ receita.descricao|truncatewords:30 }}</p>
 
@@ -109,6 +130,7 @@
                             <a href="{% url 'paginaLogin' %}?next={% url 'fazer_comentario' receita.id %}" class="btn btn-outline-secondary btn-sm">Login para Comentar</a>
                         {% endif %}
                     </div>
+
                 </div>
             </div>
         {% empty %}
@@ -130,7 +152,6 @@
         {% endfor %}
     </div>
 
-    <!-- Paginação -->
     {% if receitas.has_other_pages %}
         <nav aria-label="Paginação" class="mt-4">
             <ul class="pagination justify-content-center">
@@ -153,7 +174,6 @@
         </nav>
     {% endif %}
 
-    <!-- Rodapé -->
     <hr>
     <footer class="text-center text-muted py-3">
         {% if not user.is_authenticated %}

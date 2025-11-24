@@ -128,14 +128,26 @@
             {% endif %}
 
             {% for comentario in comentarios %}
-                <div class="border p-2 mb-2 rounded">
+                <div class="border p-2 mb-2 rounded d-flex align-items-start gap-2">
+
+                    <!-- FOTO DO USUARIO -->
+                    <img src="{% if comentario.usuario.foto_perfil %}{{ comentario.usuario.foto_perfil.url }}{% else %}/static/img/default_profile.png{% endif %}"
+                         class="rounded-circle"
+                         width="45"
+                         height="45"
+                         style="object-fit: cover;">
+
                     <div>
-                        <strong>{{ comentario.usuario.username }}</strong> - {{ comentario.criado_em|date:"d/m/Y H:i" }}
-                        {% if comentario.atualizado_em != comentario.criado_em %}
-                            <em>(editado em {{ comentario.atualizado_em|date:"d/m/Y H:i" }})</em>
-                        {% endif %}
+                        <div>
+                            <strong>{{ comentario.usuario.username }}</strong> -
+                            {{ comentario.criado_em|date:"d/m/Y H:i" }}
+                            {% if comentario.atualizado_em != comentario.criado_em %}
+                                <em>(editado em {{ comentario.atualizado_em|date:"d/m/Y H:i" }})</em>
+                            {% endif %}
+                        </div>
+                        <div>{{ comentario.texto }}</div>
                     </div>
-                    <div>{{ comentario.texto }}</div>
+
                 </div>
             {% empty %}
                 <p>Nenhum comentário ainda.</p>
@@ -289,7 +301,6 @@
                 
                 messageDiv.innerHTML = `<span class="text-success">${data.message}</span>`;
                 
-                // Limpar mensagem após 3 segundos
                 setTimeout(() => {
                     messageDiv.innerHTML = `<span class="text-success">Você avaliou com ${nota} estrelas</span>`;
                 }, 3000);
