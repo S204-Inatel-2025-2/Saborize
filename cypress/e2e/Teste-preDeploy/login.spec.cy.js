@@ -1,7 +1,7 @@
 describe('Funcionalidade de Login - Saborize', () => {
   it('Deve permitir o login com sucesso', () => {
     cy.visit('/login/');
-    cy.get('input[name="username"]').type('Joao');
+    cy.get('input[name="username"]').type('Joao1c');
     cy.get('input[name="password"]').type('G7p!2xQ9');
     cy.get('button[type="submit"]').click();
     cy.location('pathname').should('eq', '/');
