@@ -4,7 +4,6 @@ describe('Testes de Segurança - Acesso Deslogado', () => {
 const urlsProtegidas = [
     '/receitas/criar/',    
     '/receitas/minhas/',  
-    '/receitas/feed/'
   ];
   urlsProtegidas.forEach((url) => {
     

@@ -7,7 +7,7 @@ describe('Testes de Monkey (Chaos Testing) com Gremlins.js', () => {
   beforeEach(() => {
 
     cy.visit('/login/');
-    cy.get('input[name="username"]').type('Joao'); 
+    cy.get('input[name="username"]').type('Joao1'); 
     cy.get('input[name="password"]').type('G7p!2xQ9'); 
     cy.get('button[type="submit"]').click();
     cy.location('pathname').should('eq', '/'); 
