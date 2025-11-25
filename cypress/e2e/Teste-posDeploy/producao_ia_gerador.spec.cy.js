@@ -80,4 +80,39 @@ describe('Saborize - Gerador de Receitas com IA (Produção)', () => {
     cy.contains('Gerado pelo Cypress').should('be.visible');
   });
 
+    it('Deve validar campos obrigatórios (Tentativa de gerar sem selecionar nada)', () => {
+        
+    cy.contains('button', 'Gerar Receita com IA').click();
+
+    cy.contains('Sua receita aparecerá aqui após gerar.').should('be.visible');
+    
+  });
+
+  it('Deve tratar entradas inválidas/não alimentares na observação (Guardrails)', () => {
+    
+    const respostaRecusa = {
+      titulo: "Pedido Inválido",
+      conteudo: "Desculpe, sou um assistente de culinária. Não posso criar receitas com itens não comestíveis.",
+    };
+
+    cy.intercept('POST', '**', {
+      statusCode: 200,
+      body: respostaRecusa,
+      delay: 500
+    }).as('chamadaSeguranca');
+
+    cy.contains('label', 'Brasileira').click();
+    cy.get('select').first().select(1);
+    cy.get('select').last().select(1);
+
+    const inputAbsurdo = 'Quero uma receita de concreto com tijolos e areia';
+    cy.get('textarea').type(inputAbsurdo);
+
+    cy.contains('button', 'Gerar Receita com IA').click();
+
+    cy.wait('@chamadaSeguranca');
+
+    cy.contains('Não posso criar receitas com itens não comestíveis').should('be.visible');
+  });
+
 });
