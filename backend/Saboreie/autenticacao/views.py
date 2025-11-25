@@ -68,6 +68,20 @@ def perfil(request, username=None):
     return render(request, 'autenticacao/perfil.html', context)
 
 @login_required
+def perfil_publico(request, user_id):
+    usuario = get_object_or_404(User, id=user_id)
+
+    receitas_recentes = usuario.receitas.filter(publica=True)[:6]
+
+    context = {
+        'perfil_usuario': usuario,
+        'receitas_recentes': receitas_recentes,
+        'is_own_profile': usuario == request.user,
+    }
+
+    return render(request, 'autenticacao/perfil.html', context)
+
+@login_required
 def editar_perfil(request):
     """View para editar perfil do usuário logado"""
     if request.method == 'POST':
